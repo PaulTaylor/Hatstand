@@ -1,0 +1,49 @@
+grammar ValveTxt
+
+  rule braced_expression
+    blk_name:string SPACE+ 
+    '{' SPACE+
+      blk_content:( named_value / braced_expression )*
+    SPACE* '}' SPACE*
+    {
+      def braced?
+        true
+      end
+      def content_hash
+        tmp = {}
+        blk_content.elements.each { |e| 
+          if e.braced?
+            # Get the content hash, which will have the outer hash as the
+            # element we actually want to insert
+            e.content_hash.each { |k,v|
+              tmp[k] = v
+            }
+          else
+            tmp[e.name.str_content.text_value] = e.value.str_content.text_value
+          end
+        }
+        { blk_name.str_content.text_value => tmp }
+      end
+    }
+  end
+
+  rule named_value
+    name:string SPACE* value:string SPACE+ {
+      def braced?
+        false
+      end
+      def content_hash
+        { name.str_content.text_value => value.str_content.text_value }
+      end
+    }
+  end
+
+  rule string
+    '"' str_content:([^"]*) '"'
+  end
+  
+  rule SPACE
+    [\t\n\r ]
+  end
+
+end

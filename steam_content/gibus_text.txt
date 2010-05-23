@@ -1,0 +1,47 @@
+"115"
+		{
+			"name"	"Halloween Hat"
+			"hidden"	"0"
+			"item_class"	"tf_wearable_item"
+			"loadondemand" "1"
+			"item_type_name""#TF_Wearable_Holiday_Hat"
+			"item_name"	"#TF_Halloween_Hat"
+			"item_slot"	"head"
+			"item_quality"	"unique"
+			"min_ilevel"	"10"
+			"max_ilevel"	"10"
+			"image_inventory"	"backpack/player/items/all_class/all_halloween"
+			"image_inventory_size_w"		"128"
+			"image_inventory_size_h"		"82"
+			"holiday_restriction"	"halloween"
+			"model_player_per_class"	
+			{
+				"scout"		"models/player/items/scout/scout_halloween.mdl"
+				"sniper"	"models/player/items/sniper/sniper_halloween.mdl"
+				"soldier"	"models/player/items/soldier/soldier_halloween.mdl"
+				"demoman"	"models/player/items/demo/demo_halloween.mdl"
+				"medic"		"models/player/items/medic/medic_halloween.mdl"
+				"heavy"		"models/player/items/heavy/heavy_halloween.mdl"
+				"spy"		"models/player/items/spy/spy_halloween.mdl"
+				"engineer"	"models/player/items/engineer/engineer_halloween.mdl"
+				"pyro"		"models/player/items/pyro/pyro_halloween.mdl"
+			}
+			"drop_type"	"drop"
+			"used_by_classes"
+			{
+				"scout"	"1"
+				"sniper"	"1"
+				"soldier"	"1"
+				"demoman"	"1"
+				"medic"	"1"
+				"heavy"	"1"
+				"spy" "1"
+				"engineer" "1"
+				"pyro" "1"
+			}
+			"visuals"
+			{
+				"hide_player_bodygroup_name"	"hat"
+				"hide_player_bodygroup_name"	"headphones"
+			}
+		}
