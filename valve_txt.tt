@@ -3,7 +3,7 @@ grammar ValveTxt
   rule braced_expression
     blk_name:string SPACE+ 
     '{' SPACE+
-      blk_content:( named_value / braced_expression )*
+      blk_content:( comment / named_value / braced_expression )*
     SPACE* '}' SPACE*
     {
       def braced?
@@ -26,9 +26,22 @@ grammar ValveTxt
       end
     }
   end
+  
+  rule comment
+    #'//' (SPACE / [:/a-zA-Z0-9=.,-()-])* {
+    SPACE* '//' (!"\n" .)+ SPACE* {
+      def braced?
+        false
+      end
+      def content_hash
+        nil
+      end
+    }
+  end
 
+  # Added the alternative to last SPACE so that translations can be parsed
   rule named_value
-    name:string SPACE* value:string SPACE+ {
+    name:string SPACE* value:string ( SPACE / ( '[' ([^\]]*) ']' ) )+ {
       def braced?
         false
       end

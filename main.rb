@@ -17,12 +17,15 @@ require 'net/http'
 # Require my lookup parse results
 require 'lookups'
 
+LOOKUP = Lookups.new
+
 # Define some helpers
 helpers do
 
   # Name lookup
   def real_name(tf_int_item_name) 
-    puts "Looked up #{tf_int_item_name}"
+    item_str_identifier = LOOKUP.get_item_real_name(tf_int_item_name)
+    # Now need to look this up in the steam_content/tf_english.txt
   end
 
 end
@@ -40,8 +43,8 @@ get '/u/:username' do
     list = [] 
     backpack = JSON.parse(res)
     backpack.each do |key, item|
-        list << item['quantity']
-        get_item_real_name("Woop")
+        item_idx = item['defindex']
+        list << real_name(item_idx)
     end
 
     list.join(',')
