@@ -27,6 +27,7 @@ str = conv.iconv(str)
 nvp = p.parse str
 if nvp
   puts 'Parsed'
+  puts nvp.content_hash.inspect
 else
   puts p.failure_reason
 end

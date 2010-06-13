@@ -13,20 +13,32 @@ class Lookups
   # Just build some hashes for quick lookups
   def initialize
      parser = ValveTxtParser.new
+     parser.consume_all_input = false
+
      str = IO.read 'steam_content/items_game.txt'
      res = parser.parse str 
      @items = res.content_hash["items_game"]['items']
 
      # Translations
      en_str = IO.read 'steam_content/tf_english.txt'
+     require 'iconv'
+     conv = Iconv.new('UTF-8', 'UTF-16')
+     en_str = conv.iconv(en_str)
+
      en_res = parser.parse en_str
-     puts en_res.inspect
+     @trans = en_res.content_hash["lang"]["Tokens"]
   end
 
   def get_item_real_name(tf_item_identifier) 
     puts "Getting name for id : #{tf_item_identifier.inspect}"
     item_info = @items[tf_item_identifier.to_s]
-    item_info['name'] unless item_info.nil?
+    if item_info.nil?
+      ''
+    else 
+      item_ident = item_info['item_name'].slice(1..-1)
+      puts item_info.inspect
+      @trans[item_ident]
+    end
   end
 
 end

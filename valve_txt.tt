@@ -15,9 +15,10 @@ grammar ValveTxt
           if e.braced?
             # Get the content hash, which will have the outer hash as the
             # element we actually want to insert
-            e.content_hash.each { |k,v|
+            the_hash = e.content_hash
+            the_hash.each { |k,v|
               tmp[k] = v
-            }
+            } unless the_hash.nil?
           else
             tmp[e.name.str_content.text_value] = e.value.str_content.text_value
           end
@@ -31,7 +32,7 @@ grammar ValveTxt
     #'//' (SPACE / [:/a-zA-Z0-9=.,-()-])* {
     SPACE* '//' (!"\n" .)+ SPACE* {
       def braced?
-        false
+        true
       end
       def content_hash
         nil
