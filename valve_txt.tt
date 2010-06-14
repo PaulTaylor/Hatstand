@@ -17,13 +17,13 @@ grammar ValveTxt
             # element we actually want to insert
             the_hash = e.content_hash
             the_hash.each { |k,v|
-              tmp[k] = v
+              tmp[k.downcase] = v
             } unless the_hash.nil?
           else
-            tmp[e.name.str_content.text_value] = e.value.str_content.text_value
+            tmp[e.name.str_content.text_value.downcase] = e.value.str_content.text_value
           end
         }
-        { blk_name.str_content.text_value => tmp }
+        { blk_name.str_content.text_value.downcase => tmp }
       end
     }
   end
@@ -47,13 +47,13 @@ grammar ValveTxt
         false
       end
       def content_hash
-        { name.str_content.text_value => value.str_content.text_value }
+        { name.str_content.text_value.downcase => value.str_content.text_value }
       end
     }
   end
 
   rule string
-    '"' str_content:([^"]*) '"'
+    '"' str_content:( ('\\"'? [^"])* ) '"'
   end
   
   rule SPACE

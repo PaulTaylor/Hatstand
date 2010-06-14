@@ -26,18 +26,23 @@ class Lookups
      en_str = conv.iconv(en_str)
 
      en_res = parser.parse en_str
-     @trans = en_res.content_hash["lang"]["Tokens"]
+     if en_res.nil? then
+       puts parser.failure_reason 
+     end
+     @trans = en_res.content_hash["lang"]["tokens"]
   end
 
   def get_item_real_name(tf_item_identifier) 
+    # tf_item_identifier is a number so doesn't need downcasing
     puts "Getting name for id : #{tf_item_identifier.inspect}"
     item_info = @items[tf_item_identifier.to_s]
     if item_info.nil?
-      ''
+      tf_item_identifier
     else 
       item_ident = item_info['item_name'].slice(1..-1)
-      puts item_info.inspect
-      @trans[item_ident]
+      item_ident = item_ident.downcase
+      # This will give the name only when it can be translated
+      @trans[item_ident] || "#{item_ident}*"
     end
   end
 
