@@ -14,18 +14,18 @@ require 'haml'
 require 'json'
 require 'net/http'
 
-# Require my lookup parse results
-require 'lookups'
-
-LOOKUP = Lookups.new
+# Use Sequel for db access
+require 'sequel'
 
 # Define some helpers
 helpers do
 
+  DB = Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://items.db')
+  DS = DB[:items]
+
   # Name lookup
   def real_name(tf_int_item_name) 
-    item_str_identifier = LOOKUP.get_item_real_name(tf_int_item_name)
-    # Now need to look this up in the steam_content/tf_english.txt
+    item_str_identifier = DS.filter(:item_id => tf_int_item_name).first[:en_name]
   end
 
 end
