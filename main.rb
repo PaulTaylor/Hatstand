@@ -43,10 +43,9 @@ get '/u/:username' do
     list = [] 
     backpack = JSON.parse(res)
     backpack.each do |key, item|
-        item_idx = item['defindex']
-        list << real_name(item_idx)
+        list << item 
     end
 
-    list.join(',')
+    haml :backpack, :locals => {:items => list}
 end
     
