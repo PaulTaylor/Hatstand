@@ -46,6 +46,20 @@ get '/u/:username' do
         list << item 
     end
 
-    haml :backpack, :locals => {:items => list}
-end
+    firsts, dupes = [], [] 
     
+    list.each { |i|
+      # Put into firsts if doesn't exist already else in dupes
+      if nil == ( firsts.detect { |o| o['defindex'] == i['defindex'] } )
+        firsts << i
+      else 
+        dupes << i
+      end
+    }
+
+    haml :backpack, :locals => {:firsts => firsts, :dupes => dupes}
+end
+   
+get '/main.css' do
+  sass :main
+end

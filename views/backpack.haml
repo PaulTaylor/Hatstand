@@ -1,9 +1,16 @@
 %h1 Backpack
 
+%h2 Unique Items
 %ul
-  - items.each do |item|
+  - firsts.each do |item|
     %li 
       = real_name item['defindex']
-      %ul 
-        - item.each do |k,v|
-          %li= "#{k} = #{v}"
+//      %ul 
+//       - item.each do |k,v|
+//         %li= "#{k} = #{v}"
+
+%h2 Dupes 
+%ul
+  - dupes.each do |item|
+    %li 
+      = real_name item['defindex']
