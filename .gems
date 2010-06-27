@@ -1,1 +1,2 @@
 treetop --version '>= 1.4.8'
+yajl-gems --version '>=0.7.6'

@@ -4,9 +4,9 @@
 %ul
   - firsts.each do |item|
     %li{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
-      = real_name item['defindex']
+      = real_name item[:defindex]
       ( Slot = 
-      = item_slot item['defindex']
+      = item_slot item[:defindex]
       )
       - unless item[:equipped_by].empty?
         %ul
@@ -18,4 +18,4 @@
 %ul
   - dupes.each do |item|
     %li 
-      = real_name item['defindex']
+      = real_name item[:defindex]

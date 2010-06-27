@@ -11,8 +11,8 @@ require 'sass'
 require 'haml'
 
 # stuff needed to get items from steamcommunity.com
-require 'json'
-require 'net/http'
+require 'uri'
+require 'yajl/http_stream'
 
 # Use Sequel for db access
 require 'sequel'
@@ -53,19 +53,16 @@ get '/' do
 end
 
 get '/u/:username' do
-    "Hello #{params[:username]}"
-    url = "/id/#{params[:username]}/tfitems?json=1" 
-    res = Net::HTTP.start('steamcommunity.com') { |http|
-        http.get(url).body
-    }
+    url = "http://steamcommunity.com/id/#{params[:username]}/tfitems?json=1" 
+
     list = [] 
-    backpack = JSON.parse(res)
+    backpack = Yajl::HttpStream.get(URI.parse(url), :symbolize_keys => true)
     backpack.each do |key, item|
         list << item 
 
       # Test for equipped classes
       equipped_by = CLASS_MASKS.collect do |mask, name|
-        test = ( item['inventory'] & mask ) 
+        test = ( item[:inventory] & mask ) 
         name if test > 0
       end
       item[:equipped_by] = equipped_by.find_all {|i| i}
@@ -77,14 +74,14 @@ get '/u/:username' do
     dupes = [] 
     list.each { |i|
       # Put into firsts if doesn't exist already else in dupes
-      if nil == ( firsts.detect { |o| o['defindex'] == i['defindex'] } )
+      if nil == ( firsts.detect { |o| o[:defindex] == i[:defindex] } )
         firsts << i
       else 
         dupes << i
       end
     }
 
-    firsts = firsts.sort_by {|it| it['defindex']}
+    firsts = firsts.sort_by {|it| it[:defindex]}
 
     haml :backpack, :locals => {:firsts => firsts, :dupes => dupes}
 end
