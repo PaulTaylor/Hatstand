@@ -39,16 +39,18 @@ require 'sequel'
    primary_key :pk
    Integer :item_id
    String :en_name
+   String :item_slot
  end
  
  # Populate the table
  db_items = DB[:items]
  @items.each do |k,item_info|
+   puts item_info.inspect
    item_ident = item_info['item_name'].slice(1..-1)
    item_ident = item_ident.downcase
    # This will give the name only when it can be translated
    en_name = @trans[item_ident]
-   db_items.insert(:item_id => k, :en_name => en_name)
+   db_items.insert(:item_id => k, :en_name => en_name, :item_slot => item_info['item_slot'])
  end
  puts "Item count: #{db_items.count}"
 

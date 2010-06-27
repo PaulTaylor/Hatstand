@@ -3,11 +3,16 @@
 %h2 Unique Items
 %ul
   - firsts.each do |item|
-    %li 
+    %li{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
       = real_name item['defindex']
-//      %ul 
-//       - item.each do |k,v|
-//         %li= "#{k} = #{v}"
+      ( Slot = 
+      = item_slot item['defindex']
+      )
+      - unless item[:equipped_by].empty?
+        %ul
+          %li 
+            Equipped by
+            = item[:equipped_by].join(', ')
 
 %h2 Dupes 
 %ul
