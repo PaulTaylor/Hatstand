@@ -3,6 +3,8 @@
   %head
     %title Hatstand
     %link{:rel => 'stylesheet', :type => 'text/css', :href => '/main.css', :media => 'screen'}
+    - ['jquery', 'jquery.tablesorter'].each do |js|
+      %script{:type => 'text/javascript', :src => "/javascript/#{js}.js"}
   %body
     #content
       = yield

@@ -56,7 +56,8 @@ get '/u/:username' do
     url = "http://steamcommunity.com/id/#{params[:username]}/tfitems?json=1" 
 
     list = [] 
-    backpack = Yajl::HttpStream.get(URI.parse(url), :symbolize_keys => true)
+    #backpack = Yajl::HttpStream.get(URI.parse(url), :symbolize_keys => true)
+    backpack = Yajl::Parser.parse(File.open('example.json', 'r'), :symbolize_keys => true)
     backpack.each do |key, item|
         list << item 
 

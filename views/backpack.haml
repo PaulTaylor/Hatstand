@@ -1,18 +1,25 @@
+:javascript
+  $(function() {
+    $('table').tablesorter();
+  });
+
 %h1 Backpack
 
 %h2 Unique Items
-%ul
-  - firsts.each do |item|
-    %li{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
-      = real_name item[:defindex]
-      ( Slot = 
-      = item_slot item[:defindex]
-      )
-      - unless item[:equipped_by].empty?
-        %ul
-          %li 
-            Equipped by
-            = item[:equipped_by].join(', ')
+%table
+  %thead
+    %th Item Slot
+    %th Item Name
+    %th Equipped By
+  %tbody
+    - firsts.each do |item|
+      %tr{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
+        %td= item_slot item[:defindex]
+        %td= real_name item[:defindex]
+        %td
+          - inits = item[:equipped_by].collect do |i| 
+            - i[0,1] 
+          = inits.join(', ')
 
 %h2 Dupes 
 %ul
