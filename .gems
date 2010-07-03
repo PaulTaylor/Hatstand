@@ -1,1 +1,2 @@
 treetop --version '>= 1.4.8'
+xml-simple --version '>=1.0.12'
