@@ -1,2 +1,1 @@
 treetop --version '>= 1.4.8'
-yajl-ruby --version '>=0.7.6'
