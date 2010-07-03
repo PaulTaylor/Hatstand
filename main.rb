@@ -18,7 +18,7 @@ require 'sequel'
 
 # Extra Stuff for WS & Parsing
 require 'open-uri'
-require 'XmlSimple'
+require 'xmlsimple'
 require 'json/pure'
 
 # Some constants

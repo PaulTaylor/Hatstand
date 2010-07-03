@@ -1,2 +1,5 @@
-treetop --version '>= 1.4.8'
-xml-simple 
+sinatra --version '>=1.0'
+haml --version '>=3.0.13'
+sequel --version '>=3.0.13'
+xml-simple --version '>=1.0.12'
+json_pure --version '=1.4.3'
