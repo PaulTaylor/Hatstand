@@ -17,16 +17,18 @@ require 'open-uri'
 STEAM_API_KEY = ENV['STEAM_API_KEY']
 
 res = XmlSimple.xml_in(
-  open("http://api.steampowered.com/ITFItems_440/GetSchema/v0001/?key=#{STEAM_API_KEY}&format=xml"),
+  open("http://api.steampowered.com/ITFItems_440/GetSchema/v0001/?key=#{STEAM_API_KEY}&format=xml").read,
   'KeyToSymbol' => true
 )   
-@items = res[:items]
+@items = res[:items][0][:item]
 
 # Translations
 en_str = IO.read 'steam_content/tf_english.txt'
 require 'iconv'
 conv = Iconv.new('UTF-8', 'UTF-16')
-en_str = conv.iconv(en_str)
+# See http://po-ru.com/diary/fixing-invalid-utf-8-in-ruby-revisited/ for a 
+# reason why the dodge on the next line is require
+en_str = conv.iconv(en_str + ' ')[0..-2]
 
 parser = ValveTxtParser.new
 parser.consume_all_input = false
@@ -34,7 +36,7 @@ en_res = parser.parse en_str
 if en_res.nil? then
   puts parser.failure_reason 
 end
-@trans = en_res.content_hash["lang"]["tokens"]
+@trans = en_res.content_hash[:lang][:tokens]
 
 # Delete the old db first
 File.delete 'items.db'
@@ -52,13 +54,13 @@ end
 
 # Populate the table
 db_items = DB[:items]
-@items.each do |k,item_info|
-  puts item_info.inspect
-  item_ident = item_info['item_name'].slice(1..-1)
-  item_ident = item_ident.downcase
+puts @trans.inspect
+@items.each do |item_info|
+  item_ident = item_info[:item_name][0].slice(1..-1).downcase.intern
+  puts item_ident.inspect
   # This will give the name only when it can be translated
   en_name = @trans[item_ident]
-  db_items.insert(:item_id => k, :en_name => en_name, :item_slot => item_info['item_slot'])
+  db_items.insert(:item_id => item_info[:defindex], :en_name => en_name, :item_slot => item_info[:item_slot])
 end
 puts "Item count: #{db_items.count}"
 
