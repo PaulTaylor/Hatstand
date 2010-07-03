@@ -12,12 +12,19 @@ require 'haml'
 
 # stuff needed to get items from steamcommunity.com
 require 'uri'
-require 'yajl/http_stream'
 
 # Use Sequel for db access
 require 'sequel'
 
+# Extra Stuff for WS & Parsing
+require 'open-uri'
+require 'XmlSimple'
+require 'json/pure'
+
 # Some constants
+STEAM_API_KEY = ENV['steam_api_key']
+puts "Using steam api key = #{STEAM_API_KEY}"
+
 CLASS_MASKS = {
   0x001000000 => 'Engineer',
   0x000800000 => 'Spy',
@@ -53,21 +60,27 @@ get '/' do
 end
 
 get '/u/:username' do
-    url = "http://steamcommunity.com/id/#{params[:username]}/tfitems?json=1" 
+
+    # First, get the steamcommunity page for this user to retrieve the steamId64 number
+    sc_url = "http://steamcommunity.com/id/#{params[:username]}?xml=1"
+    sc_res = XmlSimple.xml_in(open(sc_url).read)
+
+    steamId64 = sc_res['steamID64']
+    puts steamId64
+
+    # Now I can make the steam api call to the web-service for the actual backpack
+    api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
+    raw_json_file = open(api_url).read
+    backpack = JSON.parse(raw_json_file, { :symbolize_names => true })
+    backpack = backpack[:result][:items][:item]
 
     list = [] 
-    if development? then
-      backpack = Yajl::Parser.parse(File.open('example.json', 'r'), :symbolize_keys => true)
-    else
-      backpack = Yajl::HttpStream.get(URI.parse(url), :symbolize_keys => true)
-    end
-
-    backpack.each do |key, item|
-        list << item 
+    backpack.each do |item|
+      list << item 
 
       # Test for equipped classes
       equipped_by = CLASS_MASKS.collect do |mask, name|
-        test = ( item[:inventory] & mask ) 
+        test = ( item[:inventory] & mask ) || 0 
         name if test > 0
       end
       item[:equipped_by] = equipped_by.find_all {|i| i}
@@ -91,6 +104,10 @@ get '/u/:username' do
     haml :backpack, :locals => {:firsts => firsts, :dupes => dupes}
 end
    
+get '/privacy' do
+    haml :privacy
+end
+
 get '/main.css' do
   content_type 'text/css', :charset => 'utf-8'
   sass :main
