@@ -112,3 +112,8 @@ get '/main.css' do
   content_type 'text/css', :charset => 'utf-8'
   sass :main
 end
+
+get '/blue/style.css' do
+  content_type 'text/css', :charset => 'utf-8'
+  sass :blue
+end
