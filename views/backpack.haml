@@ -18,7 +18,7 @@
         %td= real_name item[:defindex]
         %td
           - inits = item[:equipped_by].collect do |i| 
-            %img{:src => "/valve-imgs/20px-Leaderboard_class_#{i.downcase}.png"}
+            %img{:src => "/valve-imgs/20px-Leaderboard_class_#{i.downcase}.png", :alt => "#{i}"}
 
 %h2 Dupes 
 %ul
