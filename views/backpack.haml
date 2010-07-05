@@ -3,8 +3,11 @@
     $('table').tablesorter();
   });
 
-%h1 Backpack
-
+%h1 
+  // Dodge to leave the rest of the name as specified so that
+  // my name doesn't have a small D in
+  = "#{username[0,1].capitalize}#{username[1..-1]}'s Backpack"
+  
 %h2 Unique Items
 %table.tablesorter
   %thead
