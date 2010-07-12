@@ -108,12 +108,11 @@ get '/privacy' do
     haml :privacy
 end
 
-get '/main.css' do
+get '/:ss_name.css' do
   content_type 'text/css', :charset => 'utf-8'
-  sass :main
+  sass params[:ss_name].intern
 end
 
-get '/blue/style.css' do
-  content_type 'text/css', :charset => 'utf-8'
-  sass :blue
+get '/:style_name/style.css' do
+  redirect "/#{params[:style_name]}.css", 301
 end

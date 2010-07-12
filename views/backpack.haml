@@ -9,19 +9,27 @@
   = "#{username[0,1].capitalize}#{username[1..-1]}'s Backpack"
   
 %h2 Unique Items
-%table.tablesorter
-  %thead
-    %th Item Slot
-    %th Item Name
-    %th Equipped By
-  %tbody
-    - firsts.each do |item|
-      %tr{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
-        %td= item_slot item[:defindex]
-        %td= real_name item[:defindex]
-        %td
-          - inits = item[:equipped_by].collect do |i| 
-            %img{:src => "/valve-imgs/20px-Leaderboard_class_#{i.downcase}.png", :alt => "#{i}"}
+
+- sections = ['Head', 'Primary', 'Secondary', 'Melee', 'Other']
+- sections.each do |section|
+  - items, remaining = firsts.partition do |i|
+    // Not sure why straight == doesn't seem to work
+    - 0 == ( section <=> item_slot(i[:defindex]) )
+  - if items.empty? then 
+    - items = remaining
+  %h3= section
+  %table.tablesorter
+    %thead
+      %th Item Name
+      %th Equipped By
+    %tbody
+      - items.each do |item|
+        %tr{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
+          %td= real_name item[:defindex]
+          %td
+            - inits = item[:equipped_by].collect do |i| 
+              %img{:src => "/valve-imgs/20px-Leaderboard_class_#{i.downcase}.png", :alt => "#{i}"}
+  - firsts = remaining
 
 %h2 Dupes 
 %ul

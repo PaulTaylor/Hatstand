@@ -14,7 +14,7 @@ require 'open-uri'
 # Need to parse items_game.txt (for identifier from JSON numbers) AND
 # tf_english.txt for the localised real name of the item
 
-STEAM_API_KEY = ENV['STEAM_API_KEY']
+STEAM_API_KEY = ENV['steam_api_key']
 
 res = XmlSimple.xml_in(
   open("http://api.steampowered.com/ITFItems_440/GetSchema/v0001/?key=#{STEAM_API_KEY}&format=xml").read,
@@ -54,10 +54,8 @@ end
 
 # Populate the table
 db_items = DB[:items]
-puts @trans.inspect
 @items.each do |item_info|
   item_ident = item_info[:item_name][0].slice(1..-1).downcase.intern
-  puts item_ident.inspect
   # This will give the name only when it can be translated
   en_name = @trans[item_ident]
   db_items.insert(:item_id => item_info[:defindex], :en_name => en_name, :item_slot => item_info[:item_slot])
