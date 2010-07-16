@@ -22,7 +22,7 @@
     %thead
       %th Item Name
       %th Equipped By
-    %tbody
+    %tbod
       - items.each do |item|
         %tr{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
           %td= real_name item[:defindex]

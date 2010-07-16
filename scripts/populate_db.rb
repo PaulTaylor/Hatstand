@@ -17,26 +17,10 @@ require 'open-uri'
 STEAM_API_KEY = ENV['steam_api_key']
 
 res = XmlSimple.xml_in(
-  open("http://api.steampowered.com/ITFItems_440/GetSchema/v0001/?key=#{STEAM_API_KEY}&format=xml").read,
+  open("http://api.steampowered.com/ITFItems_440/GetSchema/v0001/?language=en&key=#{STEAM_API_KEY}&format=xml").read,
   'KeyToSymbol' => true
 )   
 @items = res[:items][0][:item]
-
-# Translations
-en_str = IO.read 'steam_content/tf_english.txt'
-require 'iconv'
-conv = Iconv.new('UTF-8', 'UTF-16')
-# See http://po-ru.com/diary/fixing-invalid-utf-8-in-ruby-revisited/ for a 
-# reason why the dodge on the next line is require
-en_str = conv.iconv(en_str + ' ')[0..-2]
-
-parser = ValveTxtParser.new
-parser.consume_all_input = false
-en_res = parser.parse en_str
-if en_res.nil? then
-  puts parser.failure_reason 
-end
-@trans = en_res.content_hash[:lang][:tokens]
 
 # Delete the old db first
 File.delete 'items.db'
@@ -55,9 +39,13 @@ end
 # Populate the table
 db_items = DB[:items]
 @items.each do |item_info|
-  item_ident = item_info[:item_name][0].slice(1..-1).downcase.intern
+  en_name = item_info[:item_name][0]
+  # There seems to be some inconsistency here with where the real name is stored
+  # Check to see if the specified name starts with TF_ and it it does, get the 
+  # :name string instead
+  en_name = item_info[:name][0] if en_name['TF_']
+
   # This will give the name only when it can be translated
-  en_name = @trans[item_ident]
   db_items.insert(:item_id => item_info[:defindex], :en_name => en_name, :item_slot => item_info[:item_slot])
 end
 puts "Item count: #{db_items.count}"
