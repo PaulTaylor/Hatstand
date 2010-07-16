@@ -45,9 +45,7 @@ helpers do
 
   # Name lookup
   def real_name(tf_int_item_name) 
-    res = DS.filter(:item_id => tf_int_item_name).first[:en_name]
-    puts res
-    res
+    DS.filter(:item_id => tf_int_item_name).first[:en_name]
   end
 
   def item_slot(tf_int_item_name)

@@ -1,9 +1,6 @@
 # Module for tf provided item txt file parsing code
 
 require 'rubygems'
-require 'treetop'
-require 'polyglot'
-require 'scripts/valve_txt'
 require 'sequel'
 
 # use xml-simple for xml parsing
@@ -44,6 +41,13 @@ db_items = DB[:items]
   # Check to see if the specified name starts with TF_ and it it does, get the 
   # :name string instead
   en_name = item_info[:name][0] if en_name['TF_']
+
+  # Replace item_slot with token for tokens
+  puts item_info[:item_slot][0]
+  if en_name['Slot Token'] then
+    item_info[:item_slot][0] = 'Token'
+  end
+  puts item_info[:item_slot]
 
   # This will give the name only when it can be translated
   db_items.insert(:item_id => item_info[:defindex], :en_name => en_name, :item_slot => item_info[:item_slot])
