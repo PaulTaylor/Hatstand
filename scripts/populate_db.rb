@@ -19,14 +19,11 @@ res = XmlSimple.xml_in(
 )   
 @items = res[:items][0][:item]
 
-# Delete the old db first
-File.delete 'items.db'
-DB = Sequel.sqlite 'items.db'
-
-# Items table 
+# Items table - will be dropped and recreated 
 # - item identifier
 # - translated name
-DB.create_table :items do
+DB = Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://items.db')
+DB.create_table! :items do
   primary_key :pk
   Integer :item_id
   String :en_name
@@ -43,16 +40,12 @@ db_items = DB[:items]
   en_name = item_info[:name][0] if en_name['TF_']
 
   # Replace item_slot with token for tokens
-  puts item_info[:item_slot][0]
   if en_name['Slot Token'] then
     item_info[:item_slot][0] = 'Token'
   end
-  puts item_info[:item_slot]
 
   # This will give the name only when it can be translated
   db_items.insert(:item_id => item_info[:defindex], :en_name => en_name, :item_slot => item_info[:item_slot])
 end
 puts "Item count: #{db_items.count}"
 
-# Push to heroku
-`heroku db:push sqlite://items.db`
