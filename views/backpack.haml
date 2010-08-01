@@ -3,17 +3,20 @@
     $('table').tablesorter();
   });
 
+%img.avatar{:src => avatarUrl}
+
 %h1 
-  // Dodge to leave the rest of the name as specified so that
-  // my name doesn't have a small D in
+  -# Dodge to leave the rest of the name as specified so that
+  -# my name doesn't have a small D in
   = "#{username[0,1].capitalize}#{username[1..-1]}'s Backpack"
-  
+%hr
+
 %h2 Unique Items
 
 - sections = ['Head', 'Primary', 'Secondary', 'Melee', 'Other']
 - sections.each do |section|
   - items, remaining = firsts.partition do |i|
-    // Not sure why straight == doesn't seem to work
+    -# Not sure why straight == doesn't seem to work
     - 0 == ( section <=> item_slot(i[:defindex]) )
   - if items.empty? then 
     - items = remaining

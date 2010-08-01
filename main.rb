@@ -108,7 +108,12 @@ get '/u/:username' do
 
     firsts = firsts.sort_by {|it| it[:defindex]}
 
-    haml :backpack, :locals => {:username => params[:username], :firsts => firsts, :dupes => dupes}
+    haml :backpack, :locals => {
+      :username => params[:username], 
+      :firsts => firsts, 
+      :dupes => dupes,
+      :avatarUrl => avatarUrl
+    }
   end
 end
    
