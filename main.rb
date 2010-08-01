@@ -61,13 +61,20 @@ end
 
 get '/u/:username' do
 
-    # First, get the steamcommunity page for this user to retrieve the steamId64 number
-    sc_url = "http://steamcommunity.com/id/#{params[:username]}?xml=1"
-    sc_res = XmlSimple.xml_in(open(sc_url).read)
+  # First, get the steamcommunity page for this user to retrieve the steamId64 number
+  sc_url = "http://steamcommunity.com/id/#{params[:username]}?xml=1"
+  sc_res = XmlSimple.xml_in(open(sc_url).read)
+  puts sc_res.inspect
 
-    steamId64 = sc_res['steamID64']
-    puts steamId64
+  # Need to check privacy state to see if we are allowed to see the backpack
+  steamId64 = sc_res['steamID64']
+  privateProfile = sc_res['privacyState'] == ['private']
+  avatarUrl = sc_res['avatarFull']
+  puts privateProfile
 
+  if privateProfile then
+    haml :private, :locals => { :usernane => params[:username] }
+  else
     # Now I can make the steam api call to the web-service for the actual backpack
     api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
     raw_json_file = open(api_url).read
@@ -102,6 +109,7 @@ get '/u/:username' do
     firsts = firsts.sort_by {|it| it[:defindex]}
 
     haml :backpack, :locals => {:username => params[:username], :firsts => firsts, :dupes => dupes}
+  end
 end
    
 get '/privacy' do
