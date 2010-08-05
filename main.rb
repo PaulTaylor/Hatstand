@@ -18,8 +18,8 @@ require 'sequel'
 
 # Extra Stuff for WS & Parsing
 require 'open-uri'
-require 'xmlsimple'
-require 'json/pure'
+require 'xml'
+require 'json/ext'
 
 # Some constants
 STEAM_API_KEY = ENV['steam_api_key']
@@ -56,30 +56,55 @@ helpers do
 end
 
 get '/' do
-   haml :index
+   haml :index, :locals => { :start => nil }
 end
 
 get '/u/:username' do
+  
+  start = Time.now.to_f
+  puts start
 
   # First, get the steamcommunity page for this user to retrieve the steamId64 number
   sc_url = "http://steamcommunity.com/id/#{params[:username]}?xml=1"
-  sc_res = XmlSimple.xml_in(open(sc_url).read)
-  puts sc_res.inspect
+  sc_doc = XML::Reader.io(open(sc_url), :options => XML::Parser::Options::NOBLANKS |
+                                                    XML::Parser::Options::NOENT)
+  steamId64 = nil
+  avatarUrl = nil
+  continue = true
+  while sc_doc.read && continue
+    doc = sc_doc
+    unless doc.node_type == XML::Reader::TYPE_END_ELEMENT
+      # Look for stuff of interest
+      case doc.name
+        when 'steamID64' then 
+          doc.read
+          # The first one is the one we actually want
+          if steamId64.nil? then steamId64 = doc.value end 
+        when 'privacyState' then 
+          doc.read 
+          privateProfile = ( 'private' == doc.value )
+        when 'avatarFull' then 
+          doc.read
+          if avatarUrl.nil? then avatarUrl = doc.value end
+      end
+    end
 
-  # Need to check privacy state to see if we are allowed to see the backpack
-  steamId64 = sc_res['steamID64']
-  privateProfile = sc_res['privacyState'] == ['private']
-  avatarUrl = sc_res['avatarFull']
-  puts privateProfile
+    # Should we quit here?
+    continue = (steamId64.nil? || avatarUrl.nil?)
+  end
+  doc.close
+
+  puts "Time after sc #{Time.now.to_f - start}. steamId64 = #{steamId64}"
 
   if privateProfile then
-    haml :private, :locals => { :usernane => params[:username] }
+    haml :private, :locals => { :start => start, :username => params[:username] }
   else
     # Now I can make the steam api call to the web-service for the actual backpack
     api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
-    raw_json_file = open(api_url).read
-    backpack = JSON.parse(raw_json_file, { :symbolize_names => true })
+    backpack = JSON.parse(open(api_url).read, { :symbolize_names => true })
     backpack = backpack[:result][:items][:item]
+
+    puts "Time after json #{Time.now.to_f - start}."
 
     list = [] 
     backpack.each do |item|
@@ -108,17 +133,20 @@ get '/u/:username' do
 
     firsts = firsts.sort_by {|it| it[:defindex]}
 
+    puts "Time before haml invoked #{Time.now.to_f - start}"
+
     haml :backpack, :locals => {
       :username => params[:username], 
       :firsts => firsts, 
       :dupes => dupes,
-      :avatarUrl => avatarUrl
+      :avatarUrl => avatarUrl,
+      :start => start
     }
   end
 end
    
 get '/privacy' do
-    haml :privacy
+    haml :privacy, :locals => { :start => nil }
 end
 
 get '/:ss_name.css' do

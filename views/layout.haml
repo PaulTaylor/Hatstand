@@ -20,4 +20,9 @@
       = ' - '
       %a{:href => '/privacy'}
         Privacy Policy &amp; T&amp;Cs
+      #render_time
+        - if start 
+          Page constructed in
+          = "%0.5f" % (Time.now.to_f - start) 
+          seconds.
 
