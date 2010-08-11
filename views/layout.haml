@@ -4,7 +4,9 @@
     %title Hatstand
     %link{:rel => 'stylesheet', :type => 'text/css', :href => '/main.css', :media => 'screen'}
     %link{:rel => 'stylesheet', :type => 'text/css', :href => '/blue/style.css', :media => 'screen'}
-    - ['jquery', 'jquery.tablesorter'].each do |js|
+    %script{:type => 'text/javascript', 
+      :src => 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js'}
+    - ['jquery.tablesorter', 'protovis-d3.2'].each do |js|
       %script{:type => 'text/javascript', :src => "/javascript/#{js}.js"}
   %body
     #content
@@ -20,9 +22,3 @@
       = ' - '
       %a{:href => '/privacy'}
         Privacy Policy &amp; T&amp;Cs
-      #render_time
-        - if start 
-          Page constructed in
-          = "%0.5f" % (Time.now.to_f - start) 
-          seconds.
-

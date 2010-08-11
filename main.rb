@@ -37,6 +37,8 @@ CLASS_MASKS = {
   0x000010000 => 'Scout'
 }
 
+ALL_CLASSES_STR = CLASS_MASKS.values.join(',')
+
 # Define some helpers
 helpers do
 
@@ -50,20 +52,23 @@ helpers do
 
   def item_slot(tf_int_item_name)
     slot = DS.filter(:item_id => tf_int_item_name).first[:item_slot]
-    slot.capitalize unless slot.nil?
+    slot = slot.capitalize unless slot.nil?
+    if slot == 'Pda2' then slot = 'PDA' end
+    slot
+  end
+
+  def item_classes(tf_int_item_name)
+    DS.filter(:item_id => tf_int_item_name).first[:item_classes]
   end
 
 end
 
 get '/' do
-   haml :index, :locals => { :start => nil }
+   haml :index
 end
 
 get '/u/:username' do
   
-  start = Time.now.to_f
-  puts start
-
   # First, get the steamcommunity page for this user to retrieve the steamId64 number
   sc_url = "http://steamcommunity.com/id/#{params[:username]}?xml=1"
   sc_doc = XML::Reader.io(open(sc_url), :options => XML::Parser::Options::NOBLANKS |
@@ -94,18 +99,18 @@ get '/u/:username' do
   end
   doc.close
 
-  puts "Time after sc #{Time.now.to_f - start}. steamId64 = #{steamId64}"
-
   if privateProfile then
-    haml :private, :locals => { :start => start, :username => params[:username] }
+    haml :private, :locals => { 
+      :username => params[:username],
+      :avatarUrl => avatarUrl
+    }
   else
     # Now I can make the steam api call to the web-service for the actual backpack
     api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
     backpack = JSON.parse(open(api_url).read, { :symbolize_names => true })
     backpack = backpack[:result][:items][:item]
 
-    puts "Time after json #{Time.now.to_f - start}."
-
+    class_collection = Hash.new(0)
     list = [] 
     backpack.each do |item|
       list << item 
@@ -117,6 +122,20 @@ get '/u/:username' do
       end
       item[:equipped_by] = equipped_by.find_all {|i| i}
 
+      # Need to test which class this CAN be equipped by and 
+      # add/update the class/type count dictionarys
+      classes_for_item_str = item_classes(item[:defindex])
+      classes_for_item_str = '' if classes_for_item_str.nil? 
+
+      classes_for_item_str.split(',').each do |clazz_name|
+        class_collection[clazz_name] += 1
+      end
+
+    end
+
+    class_json = []
+    class_collection.each do |k,v|
+      class_json << { 'clazz' => k, 'items' => v }
     end
 
     # Make sure the equipped items are not put in dupes
@@ -133,20 +152,18 @@ get '/u/:username' do
 
     firsts = firsts.sort_by {|it| it[:defindex]}
 
-    puts "Time before haml invoked #{Time.now.to_f - start}"
-
     haml :backpack, :locals => {
       :username => params[:username], 
       :firsts => firsts, 
       :dupes => dupes,
       :avatarUrl => avatarUrl,
-      :start => start
-    }
+      :vis_json => [class_json].to_json
+    }  
   end
 end
    
 get '/privacy' do
-    haml :privacy, :locals => { :start => nil }
+    haml :privacy
 end
 
 get '/:ss_name.css' do
@@ -155,5 +172,7 @@ get '/:ss_name.css' do
 end
 
 get '/:style_name/style.css' do
+  content_type 'text/css', :charset => 'utf-8'
   redirect "/#{params[:style_name]}.css", 301
 end
+

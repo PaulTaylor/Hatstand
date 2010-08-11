@@ -1,7 +1,18 @@
 :javascript
   $(function() {
+    
+    // Table sorter
     $('table').tablesorter();
+
+   // Protovis
+    $('#vis_content').hide();
+    $('#vis_header').click(function() {
+      $('#vis_content').slideToggle(600);
+    });
+
   });
+  
+  vis_data = #{vis_json}
 
 %img.avatar{:src => avatarUrl}
 
@@ -11,31 +22,81 @@
   = "#{username[0,1].capitalize}#{username[1..-1]}'s Backpack"
 %hr
 
-%h2 Unique Items
+#vis_container.container
+  %h2#vis_header 
+    Visualisations
+    %small
+      [Click to expand]
+  #vis_content.container 
+    %script{:type => 'text/javascript+protovis'}
+      :plain
+        /* Sizing and scales. */
+          var w = 400,
+              h = 400,
+              r = w / 2,
+              sum = pv.sum(vis_data[0], function(d) d.items),
+              a = pv.Scale.linear(0, sum).range(0, 2 * Math.PI);
 
-- sections = ['Head', 'Primary', 'Secondary', 'Melee', 'Other']
-- sections.each do |section|
-  - items, remaining = firsts.partition do |i|
-    -# Not sure why straight == doesn't seem to work
-    - 0 == ( section <=> item_slot(i[:defindex]) )
-  - if items.empty? then 
-    - items = remaining
-  %h3= section
-  %table.tablesorter
-    %thead
-      %th Item Name
-      %th Equipped By
-    %tbod
-      - items.each do |item|
-        %tr{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
-          %td= real_name item[:defindex]
-          %td
-            - inits = item[:equipped_by].collect do |i| 
-              %img{:src => "/valve-imgs/20px-Leaderboard_class_#{i.downcase}.png", :alt => "#{i}"}
-  - firsts = remaining
+          /* The root panel. */
+          var root = new pv.Panel()
+              .width(100 + w)
+              .height(h)
+              .data(vis_data)
+              ;
 
-%h2 Dupes 
-%ul
-  - dupes.each do |item|
-    %li 
-      = real_name item[:defindex]
+          var vis = root.add(pv.Wedge)
+              .data(function(d) d)
+              .left(w/2)
+              .bottom(h/2)
+              .innerRadius(40)
+              .outerRadius(r)
+              .angle(a.by(function(d) d.items))
+            .anchor("center").add(pv.Label)
+              .textAngle(0)
+              .text(function(d) d.items);
+
+          var legend = vis.add(pv.Dot)
+              .data(function(d) d)
+              .top(function() (this.index + 1) * 15 )
+              .left(w + 25)
+              .fillStyle(pv.Colors.category20().by(function() this.index))
+            .anchor('right').add(pv.Label)  
+              .textBaseline('middle')
+              .text(function(d) d.clazz);
+
+          root.render();
+
+    %p Pie showing the distribution of non-global items   
+
+%hr
+
+#items_container.container
+  %h2 Unique Items
+
+  - sections = ['Head', 'Primary', 'Secondary', 'Melee', 'PDA', 'Other']
+  - sections.each do |section|
+    - items, remaining = firsts.partition do |i|
+      -# Not sure why straight == doesn't seem to work
+      - 0 == ( section <=> item_slot(i[:defindex]) )
+    - if items.empty? then 
+      - items = remaining
+    %h3= section
+    %table.tablesorter
+      %thead
+        %tr
+          %th Item Name
+          %th Equipped By
+      %tbody
+        - items.each do |item|
+          %tr{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
+            %td= real_name item[:defindex]
+            %td
+              - inits = item[:equipped_by].collect do |i| 
+                %img{:src => "/valve-imgs/20px-Leaderboard_class_#{i.downcase}.png", :alt => "#{i}"}
+    - firsts = remaining
+  
+  %h2 Dupes 
+  %ul
+    - dupes.each do |item|
+      %li 
+        = real_name item[:defindex]

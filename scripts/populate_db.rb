@@ -28,6 +28,7 @@ DB.create_table! :items do
   Integer :item_id
   String :en_name
   String :item_slot
+  String :item_classes
 end
 
 # Populate the table
@@ -44,8 +45,19 @@ db_items = DB[:items]
     item_info[:item_slot][0] = 'Token'
   end
 
+  used_by_classes_raw = item_info[:used_by_classes]
+  if used_by_classes_raw.nil? then
+    used_by_str = nil
+  else
+    used_by_str = used_by_classes_raw[0].values.join(',')
+  end
+
   # This will give the name only when it can be translated
-  db_items.insert(:item_id => item_info[:defindex], :en_name => en_name, :item_slot => item_info[:item_slot])
+  db_items.insert(:item_id => item_info[:defindex], 
+                  :en_name => en_name, 
+                  :item_slot => item_info[:item_slot],
+                  :item_classes => used_by_str
+                 )
 end
 puts "Item count: #{db_items.count}"
 
