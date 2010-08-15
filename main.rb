@@ -37,8 +37,6 @@ CLASS_MASKS = {
   0x000010000 => 'Scout'
 }
 
-ALL_CLASSES_STR = CLASS_MASKS.values.join(',')
-
 # Define some helpers
 helpers do
 
@@ -84,13 +82,13 @@ get '/u/:username' do
         when 'steamID64' then 
           doc.read
           # The first one is the one we actually want
-          if steamId64.nil? then steamId64 = doc.value end 
+          steamId64 = doc.value if steamId64.nil?
         when 'privacyState' then 
           doc.read 
           privateProfile = ( 'private' == doc.value )
         when 'avatarFull' then 
           doc.read
-          if avatarUrl.nil? then avatarUrl = doc.value end
+          avatarUrl = doc.value if avatarUrl.nil?
       end
     end
 
@@ -110,7 +108,12 @@ get '/u/:username' do
     backpack = JSON.parse(open(api_url).read, { :symbolize_names => true })
     backpack = backpack[:result][:items][:item]
 
-    class_collection = Hash.new(0)
+    json_top = {}
+    class_type_map = {}
+    CLASS_MASKS.values.each do |v|
+      class_type_map[v] = Hash.new(0)
+    end
+
     list = [] 
     backpack.each do |item|
       list << item 
@@ -128,14 +131,19 @@ get '/u/:username' do
       classes_for_item_str = '' if classes_for_item_str.nil? 
 
       classes_for_item_str.split(',').each do |clazz_name|
-        class_collection[clazz_name] += 1
+        class_type_map[clazz_name][item_slot(item[:defindex])] += 1
       end
 
-    end
+      # This need to be Hash keyed by clazz name
+      # which value is an array
+      # each array element is a hash with slot_name -> count
+      class_type_map.each do |k,v|
+        json_top[k] = []
+        v.each do |slot_name, count|
+          json_top[k] << { 'slot' => slot_name, 'items' => count }
+        end
+      end
 
-    class_json = []
-    class_collection.each do |k,v|
-      class_json << { 'clazz' => k, 'items' => v }
     end
 
     # Make sure the equipped items are not put in dupes
@@ -157,7 +165,7 @@ get '/u/:username' do
       :firsts => firsts, 
       :dupes => dupes,
       :avatarUrl => avatarUrl,
-      :vis_json => [class_json].to_json
+      :vis_json => [json_top].to_json
     }  
   end
 end

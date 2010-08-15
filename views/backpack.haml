@@ -13,6 +13,7 @@
   });
   
   vis_data = #{vis_json}
+  bar_clazz = '';
 
 %img.avatar{:src => avatarUrl}
 
@@ -31,40 +32,69 @@
     %script{:type => 'text/javascript+protovis'}
       :plain
         /* Sizing and scales. */
-          var w = 400,
-              h = 400,
-              r = w / 2,
-              sum = pv.sum(vis_data[0], function(d) d.items),
-              a = pv.Scale.linear(0, sum).range(0, 2 * Math.PI);
+        var w = 400,
+            h = 300,
+            r = h / 2,
+            sum = 0
+            ;
 
-          /* The root panel. */
-          var root = new pv.Panel()
-              .width(100 + w)
-              .height(h)
-              .data(vis_data)
-              ;
+        var pie_data = [ ];
+        for (var i in vis_data[0]) {
+          var class_array = vis_data[0][i];
+          class_cnt = pv.sum(class_array, function(d) d.items)
+          pie_data.push({
+            clazz: i,
+            items: class_cnt
+          });
+          sum += class_cnt;
+        }
 
-          var vis = root.add(pv.Wedge)
-              .data(function(d) d)
-              .left(w/2)
-              .bottom(h/2)
-              .innerRadius(40)
-              .outerRadius(r)
-              .angle(a.by(function(d) d.items))
-            .anchor("center").add(pv.Label)
-              .textAngle(0)
-              .text(function(d) d.items);
+        var a = pv.Scale.linear(0, sum).range(0, 2 * Math.PI);
 
-          var legend = vis.add(pv.Dot)
-              .data(function(d) d)
-              .top(function() (this.index + 1) * 15 )
-              .left(w + 25)
-              .fillStyle(pv.Colors.category20().by(function() this.index))
-            .anchor('right').add(pv.Label)  
-              .textBaseline('middle')
-              .text(function(d) d.clazz);
+        /* The root panel. */
+        var root = new pv.Panel()
+            .width(400 + w)
+            .height(h)
+            .data(vis_data);
+        
+        var bar_data = [];
 
-          root.render();
+        var vis = root.add(pv.Wedge)
+            .data(pie_data)
+            .left(h/2)
+            .bottom(h/2)
+            .innerRadius(40)
+            .outerRadius(r)
+            .angle(a.by(function(d) d.items))
+            .event('mousemove', function() {
+              var bar_clazz = pie_data[this.index].clazz;
+              bar_data = vis_data[0][bar_clazz];
+              root.render();
+            })
+            .event('mouseout', function() {
+              bar_data = [];
+              root.render();
+            })
+          .anchor("center").add(pv.Label)
+            .textAngle(0)
+            .text(function(d) d.clazz)
+            .textStyle('white')
+            ;
+
+        var bar_scale = pv.Colors.category20();
+        var bar = root.add(pv.Bar)
+            .data(function(d) bar_data)
+            .width(60)
+            .height(function(d) 20 * d.items)
+            .bottom(0)
+            .left(function() w + this.index * 80)
+            .fillStyle(function() bar_scale(this.index))
+          .anchor("bottom").add(pv.Label)
+            .textAngle(0)
+            .text(function(d) d.slot)
+            .textStyle('white');
+
+        root.render();
 
     %p Pie showing the distribution of non-global items   
 
