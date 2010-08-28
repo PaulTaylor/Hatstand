@@ -37,6 +37,15 @@ CLASS_MASKS = {
   0x000010000 => 'Scout'
 }
 
+# Define a predictable order for item slots
+SLOT_INDEXES = Hash.new(99999)
+SLOT_INDEXES.update({
+  'Head' => 0,
+  'Primary' => 1,
+  'Secondary' => 2,
+  'Melee' => 3
+})
+
 # Define some helpers
 helpers do
 
@@ -140,7 +149,11 @@ get '/u/:username' do
       class_type_map.each do |k,v|
         json_top[k] = []
         v.each do |slot_name, count|
-          json_top[k] << { 'slot' => slot_name, 'items' => count }
+          json_top[k] << { 
+            'slot' => slot_name, 
+            'slot_index' => SLOT_INDEXES[slot_name],
+            'items' => count 
+          }
         end
       end
 

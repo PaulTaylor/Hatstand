@@ -87,7 +87,7 @@
             .width(60)
             .height(function(d) 20 * d.items)
             .bottom(0)
-            .left(function() w + this.index * 80)
+            .left(function(d) w + d.slot_index * 80)
             .fillStyle(function() bar_scale(this.index))
           .anchor("bottom").add(pv.Label)
             .textAngle(0)
