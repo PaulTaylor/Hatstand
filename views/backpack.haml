@@ -58,6 +58,7 @@
             .data(vis_data);
         
         var bar_data = [];
+        var bar_max = 0;
 
         var vis = root.add(pv.Wedge)
             .data(pie_data)
@@ -69,10 +70,12 @@
             .event('mousemove', function() {
               var bar_clazz = pie_data[this.index].clazz;
               bar_data = vis_data[0][bar_clazz];
+              bar_max = pv.max(bar_data, function(d) d.items);
               root.render();
             })
             .event('mouseout', function() {
               bar_data = [];
+              bar_max = 0;
               root.render();
             })
           .anchor("center").add(pv.Label)
@@ -81,22 +84,36 @@
             .textStyle('white')
             ;
 
+        root.add(pv.Rule)
+            .data(function() pv.range(0, 15, 2))
+            .bottom(function(d) 30 + d * 20)
+            .width(4 * 80)
+            .left(w - 10)
+            .strokeStyle("black")
+          .add(pv.Label)
+            .textAlign("right")
+            .textBaseline("middle")
+            .text(function(d) d);
+
         var bar_scale = pv.Colors.category20();
         var bar = root.add(pv.Bar)
             .data(function(d) bar_data)
             .width(60)
             .height(function(d) 20 * d.items)
-            .bottom(0)
+            .bottom(30)
             .left(function(d) w + d.slot_index * 80)
-            .fillStyle(function() bar_scale(this.index))
+            .fillStyle(function(d) bar_scale(d.slot_index))
           .anchor("bottom").add(pv.Label)
             .textAngle(0)
             .text(function(d) d.slot)
-            .textStyle('white');
+            .textStyle('black');
+
+        root.add(pv.Label)
+          .text('Item Breakdown (mouse over the pie)')
+          .right((4*80) + 20)
+          .bottom(0);
 
         root.render();
-
-    %p Pie showing the distribution of non-global items   
 
 %hr
 
