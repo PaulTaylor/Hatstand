@@ -15,13 +15,12 @@
   vis_data = #{vis_json}
   bar_clazz = '';
 
-%img.avatar{:src => avatarUrl}
-
 %h1 
   -# Dodge to leave the rest of the name as specified so that
   -# my name doesn't have a small D in
   = "#{username[0,1].capitalize}#{username[1..-1]}'s Backpack"
-%hr
+  %img.avatar{:src => avatarUrl}
+
 
 #vis_container.container
   %h2#vis_header 
@@ -114,8 +113,6 @@
           .bottom(0);
 
         root.render();
-
-%hr
 
 #items_container.container
   %h2 Unique Items
