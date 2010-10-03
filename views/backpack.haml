@@ -10,6 +10,9 @@
       $('#vis_content').slideToggle(600);
     });
 
+    // Tipsy
+    $('.item_name').tipsy({fade: true, gravity: 'w', html: true, title: 'item_pic_img'});
+
   });
   
   vis_data = #{vis_json}
@@ -133,7 +136,15 @@
       %tbody
         - items.each do |item|
           %tr{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
-            %td= real_name item
+            %td
+              - border_style = 0
+              - if (item[:paint_col])
+                %svg{:width => '1em', :height => '1em', :style => 'position: absolute;'}
+                  %rect{:x => 3, :y => '0.1em', :height => '.8em', :width => '.8em',
+                      :style => "fill:#{item[:paint_col]};"}
+                - border_style = "5px solid #{item[:paint_col]}"
+              %span{:item_pic_img => "<img style='border: #{border_style};' src='#{item_pic_url(item[:defindex])}' />", :class => 'item_name'}
+                = real_name item
             %td
               - inits = item[:equipped_by].collect do |i| 
                 %img{:src => "/valve-imgs/20px-Leaderboard_class_#{i.downcase}.png", :alt => "#{i}"}

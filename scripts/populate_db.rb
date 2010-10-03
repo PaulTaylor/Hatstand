@@ -29,6 +29,7 @@ DB.create_table! :items do
   String :en_name
   String :item_slot
   String :item_classes
+  String :item_pic_url
 end
 
 # Populate the table
@@ -56,7 +57,8 @@ db_items = DB[:items]
   db_items.insert(:item_id => item_info[:defindex], 
                   :en_name => en_name, 
                   :item_slot => item_info[:item_slot],
-                  :item_classes => used_by_str
+                  :item_classes => used_by_str,
+                  :item_pic_url => "#{item_info[:image_url]}"
                  )
 end
 puts "Item count: #{db_items.count}"

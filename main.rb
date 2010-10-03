@@ -69,6 +69,10 @@ helpers do
     DS.filter(:item_id => tf_int_item_name).first[:item_classes]
   end
 
+  def item_pic_url(tf_int_item_name)
+    DS.filter(:item_id => tf_int_item_name).first[:item_pic_url]
+  end
+
 end
 
 get '/' do
@@ -81,6 +85,7 @@ get '/u/:username' do
   sc_url = "http://steamcommunity.com/id/#{params[:username]}?xml=1"
   sc_doc = XML::Reader.io(open(sc_url), :options => XML::Parser::Options::NOBLANKS |
                                                     XML::Parser::Options::NOENT)
+
   steamId64 = nil
   avatarUrl = nil
   continue = true
@@ -127,6 +132,17 @@ get '/u/:username' do
     list = [] 
     backpack.each do |item|
       list << item 
+
+      # Is this item painted by the user
+      # The paint attributes def index is 142
+      if (item[:attributes]) then
+        attr_list = item[:attributes][:attribute] 
+        col_attr = attr_list.detect { |a| a[:defindex] == 142 }
+        if (col_attr) then
+          col_int = col_attr[:float_value]
+          item[:paint_col] = "#%06x" % col_int;
+        end
+      end
 
       # Test for equipped classes
       equipped_by = CLASS_MASKS.collect do |mask, name|
