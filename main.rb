@@ -53,8 +53,9 @@ helpers do
   DS = DB[:items]
 
   # Name lookup
-  def real_name(tf_int_item_name) 
-    DS.filter(:item_id => tf_int_item_name).first[:en_name]
+  def real_name(tf_item) 
+    tf_int_item_name = tf_item[:defindex]
+    tf_item[:custom_name] || DS.filter(:item_id => tf_int_item_name).first[:en_name]
   end
 
   def item_slot(tf_int_item_name)

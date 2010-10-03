@@ -133,7 +133,7 @@
       %tbody
         - items.each do |item|
           %tr{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
-            %td= real_name item[:defindex]
+            %td= real_name item
             %td
               - inits = item[:equipped_by].collect do |i| 
                 %img{:src => "/valve-imgs/20px-Leaderboard_class_#{i.downcase}.png", :alt => "#{i}"}
@@ -143,4 +143,4 @@
   %ul
     - dupes.each do |item|
       %li 
-        = real_name item[:defindex]
+        = real_name item
