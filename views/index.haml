@@ -1,8 +1,21 @@
+:javascript
+  $(function() {
+    $('#user_submit').click(function() {
+      window.location.href = '/u/' + $('#user_txt').val();
+    });
+  });
+
 %h1 Welcome to Hatstand!
 
 #container
+  %p Enter your steam community url element and press enter
+  %form#user_form{:action => '#'}
+    %input#user_txt
+    %input#user_submit{:value => 'Submit', :type => 'button'}
   %p 
-    Goto http://hatstand.heroku.com/u/{Your Steam Community ID} for your personal page!
+    OR 
+  %p 
+    go to http://hatstand.heroku.com/u/{Your Steam Community ID} for your personal page!
 
   %p
     %a{:href => '/u/ApocalypticDingleberry'}
