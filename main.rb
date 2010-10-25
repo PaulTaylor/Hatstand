@@ -89,6 +89,7 @@ get '/u/:username' do
   steamId64 = nil
   avatarUrl = nil
   continue = true
+  unknownProfile = true
   while sc_doc.read && continue
     doc = sc_doc
     unless doc.node_type == XML::Reader::TYPE_END_ELEMENT
@@ -98,9 +99,11 @@ get '/u/:username' do
           doc.read
           # The first one is the one we actually want
           steamId64 = doc.value if steamId64.nil?
+          unknownProfile = false
         when 'privacyState' then 
           doc.read 
           privateProfile = ( 'private' == doc.value )
+          unknownProfile = false
         when 'avatarFull' then 
           doc.read
           avatarUrl = doc.value if avatarUrl.nil?
@@ -117,7 +120,12 @@ get '/u/:username' do
       :username => params[:username],
       :avatarUrl => avatarUrl
     }
-  else
+  elsif unknownProfile then
+    haml :unknown, :locals => { 
+      :username => params[:username],
+      :avatarUrl => avatarUrl
+    }
+  else 
     # Now I can make the steam api call to the web-service for the actual backpack
     api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
     backpack = JSON.parse(open(api_url).read, { :symbolize_names => true })
