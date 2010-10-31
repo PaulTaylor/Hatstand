@@ -11,17 +11,17 @@
     });
 
     // Tipsy
-    $('.item_name').tipsy({fade: true, gravity: 'w', html: true, title: 'item_pic_img'});
+    $('.item_name').tipsy({fade: true, gravity: $.fn.tipsy.autoWE, html: true, title: 'item_pic_img'});
 
   });
   
-  vis_data = #{vis_json}
+  vis_data = #{classSlotItem.to_json}
   bar_clazz = '';
 
 %h1 
   -# Dodge to leave the rest of the name as specified so that
   -# my name doesn't have a small D in
-  = "#{username[0,1].capitalize}#{username[1..-1]}'s Backpack"
+  = "#{username}'s Backpack"
   %img.avatar{:src => avatarUrl}
 
 
@@ -120,13 +120,7 @@
 #items_container.container
   %h2 Unique Items
 
-  - sections = ['Head', 'Primary', 'Secondary', 'Melee', 'PDA', 'Other']
   - sections.each do |section|
-    - items, remaining = firsts.partition do |i|
-      -# Not sure why straight == doesn't seem to work
-      - 0 == ( section <=> item_slot(i[:defindex]) )
-    - if items.empty? then 
-      - items = remaining
     %h3= section
     %table.tablesorter
       %thead
@@ -134,24 +128,30 @@
           %th Item Name
           %th Equipped By
       %tbody
-        - items.each do |item|
-          %tr{:class => if item[:equipped_by].empty? then 'not-equipped' else 'equipped' end } 
+        - # item_detail[item_name, eqipped_pics]
+        - item_detail = {}
+        - classSlotItem.each do |class_name, slots|
+          - class_pic_url = "/valve-imgs/20px-Leaderboard_class_#{class_name.downcase}.png"
+          - classSlotItem[class_name][section].values.each do |item|
+            - equipped_imgs = item_detail[item[:real_name]]
+            - if !equipped_imgs then
+              - equipped_imgs = []
+              - item_detail[item[:real_name]] = equipped_imgs
+            - if item[:equipped] then
+              - equipped_imgs << [class_pic_url] 
+        - item_detail.each do |item_name, equipped_pics|
+          %tr
+            %td= item_name
             %td
-              - border_style = 0
-              - if (item[:paint_col])
-                %svg{:width => '1em', :height => '1em', :style => 'position: absolute;'}
-                  %rect{:x => 3, :y => '0.1em', :height => '.8em', :width => '.8em',
-                      :style => "fill:#{item[:paint_col]};"}
-                - border_style = "5px solid #{item[:paint_col]}"
-              %span{:item_pic_img => "<img style='border: #{border_style};' src='#{item_pic_url(item[:defindex])}' />", :class => 'item_name'}
-                = real_name item
-            %td
-              - inits = item[:equipped_by].collect do |i| 
-                %img{:src => "/valve-imgs/20px-Leaderboard_class_#{i.downcase}.png", :alt => "#{i}"}
-    - firsts = remaining
+              - equipped_pics.each do |url|
+                %img{:src => url}
   
   %h2 Dupes 
   %ul
     - dupes.each do |item|
-      %li 
-        = real_name item
+      %li.item_name{:item_pic_img => "<img src='#{item[:img_url]}' />"}= item[:real_name]
+
+  %h2 Misc Items
+  %ul
+    - miscs.each do |item|
+      %li.item_name{:item_pic_img => "<img src='#{item[:img_url]}' />"}= item[:real_name]

@@ -22,19 +22,20 @@ require 'xml'
 require 'json/ext'
 
 # Some constants
+STARTUP_TIME = Time.now
 STEAM_API_KEY = ENV['steam_api_key']
 puts "Using steam api key = #{STEAM_API_KEY}"
 
 CLASS_MASKS = {
-  0x001000000 => 'Engineer',
-  0x000800000 => 'Spy',
-  0x000400000 => 'Pyro',
-  0x000200000 => 'Heavy',
-  0x000100000 => 'Medic',
-  0x000080000 => 'Demoman',
-  0x000040000 => 'Soldier',
-  0x000020000 => 'Sniper',
-  0x000010000 => 'Scout'
+  'Engineer' => 0x001000000,
+  'Spy' => 0x000800000,
+  'Pyro' => 0x000400000,
+  'Heavy' => 0x000200000,
+  'Medic' => 0x000100000,
+  'Demoman' => 0x000080000,
+  'Soldier' => 0x000040000,
+  'Sniper' => 0x000020000,
+  'Scout' => 0x000010000
 }
 
 # Define a predictable order for item slots
@@ -43,44 +44,42 @@ SLOT_INDEXES.update({
   'Head' => 0,
   'Primary' => 1,
   'Secondary' => 2,
-  'Melee' => 3
+  'Melee' => 3,
+  'PDA' => 4,
+  'Misc' => 5
 })
 
 # Define some helpers
 helpers do
 
-  DB = Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://items.db')
+  DB = Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://hatstand.db')
   DS = DB[:items]
+  USERS = DB[:users]
 
-  # Name lookup
-  def real_name(tf_item) 
-    tf_int_item_name = tf_item[:defindex]
-    tf_item[:custom_name] || DS.filter(:item_id => tf_int_item_name).first[:en_name]
+  def dbLookup(defindex) 
+    DS.filter(:item_id => defindex).first
   end
 
-  def item_slot(tf_int_item_name)
-    slot = DS.filter(:item_id => tf_int_item_name).first[:item_slot]
-    slot = slot.capitalize unless slot.nil?
-    if slot == 'Pda2' then slot = 'PDA' end
-    slot
+  def user(steamId64)
+    USERS.filter(:steamId64 => steamId64).first
   end
 
-  def item_classes(tf_int_item_name)
-    DS.filter(:item_id => tf_int_item_name).first[:item_classes]
-  end
-
-  def item_pic_url(tf_int_item_name)
-    DS.filter(:item_id => tf_int_item_name).first[:item_pic_url]
+  def update_user(updates)
+    USERS.filter(:steamId64 => updates[:steamId64]).delete
+    USERS.insert(updates)
   end
 
 end
 
 get '/' do
-   haml :index
+  # This can be cached long term because Heroku will flush its varnish
+  # front end on deploy 
+  expires 43200, :public, :must_revalidate
+  haml :index
 end
 
 get '/u/:username' do
-  
+
   # First, get the steamcommunity page for this user to retrieve the steamId64 number
   sc_url = "http://steamcommunity.com/id/#{params[:username]}?xml=1"
   sc_doc = XML::Reader.io(open(sc_url), :options => XML::Parser::Options::NOBLANKS |
@@ -114,7 +113,8 @@ get '/u/:username' do
     continue = (steamId64.nil? || avatarUrl.nil?)
   end
   doc.close
-
+  
+  
   if privateProfile then
     haml :private, :locals => { 
       :username => params[:username],
@@ -126,99 +126,157 @@ get '/u/:username' do
       :avatarUrl => avatarUrl
     }
   else 
-    # Now I can make the steam api call to the web-service for the actual backpack
-    api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
-    backpack = JSON.parse(open(api_url).read, { :symbolize_names => true })
-    backpack = backpack[:result][:items][:item]
 
-    json_top = {}
-    class_type_map = {}
-    CLASS_MASKS.values.each do |v|
-      class_type_map[v] = Hash.new(0)
-    end
-
-    list = [] 
-    backpack.each do |item|
-      list << item 
-
-      # Is this item painted by the user
-      # The paint attributes def index is 142
-      if (item[:attributes]) then
-        attr_list = item[:attributes][:attribute] 
-        col_attr = attr_list.detect { |a| a[:defindex] == 142 }
-        if (col_attr) then
-          col_int = col_attr[:float_value]
-          item[:paint_col] = "#%06x" % col_int;
-        end
-      end
-
-      # Test for equipped classes
-      equipped_by = CLASS_MASKS.collect do |mask, name|
-        test = ( item[:inventory] & mask ) || 0 
-        name if test > 0
-      end
-      item[:equipped_by] = equipped_by.find_all {|i| i}
-
-      # Need to test which class this CAN be equipped by and 
-      # add/update the class/type count dictionarys
-      classes_for_item_str = item_classes(item[:defindex])
-      classes_for_item_str = '' if classes_for_item_str.nil? 
-
-      classes_for_item_str.split(',').each do |clazz_name|
-        class_type_map[clazz_name][item_slot(item[:defindex])] += 1
-      end
-
-      # This need to be Hash keyed by clazz name
-      # which value is an array
-      # each array element is a hash with slot_name -> count
-      class_type_map.each do |k,v|
-        json_top[k] = []
-        v.each do |slot_name, count|
-          json_top[k] << { 
-            'slot' => slot_name, 
-            'slot_index' => SLOT_INDEXES[slot_name],
-            'items' => count 
-          }
-        end
-      end
-
-    end
-
-    # Make sure the equipped items are not put in dupes
-    list, firsts = list.partition { |it| it[:equipped_by].empty? }
-    dupes = [] 
-    list.each { |i|
-      # Put into firsts if doesn't exist already else in dupes
-      if nil == ( firsts.detect { |o| o[:defindex] == i[:defindex] } )
-        firsts << i
-      else 
-        dupes << i
-      end
-    }
-
-    firsts = firsts.sort_by {|it| it[:defindex]}
-
-    haml :backpack, :locals => {
-      :username => params[:username], 
-      :firsts => firsts, 
-      :dupes => dupes,
+    # Update the db with the latest info
+    update_user({
+      :steamId64 => steamId64,
       :avatarUrl => avatarUrl,
-      :vis_json => [json_top].to_json
-    }  
+      :username => params[:username]
+    })
+
+    # Forward to the backpack page, and get heroku's varnish to
+    # cache the forward
+    expires 3600, :public, :must_revalidate
+    redirect "/id/#{steamId64}", 302
+
   end
+end
+
+get '/id/:steamId64' do
+
+  # grab the steamId from the url
+  steamId64 = params[:steamId64].to_i
+  user = user(steamId64)
+  avatarUrl = ''
+  username = ''
+
+  if user.nil? then
+    # This could be the case if the users table is empty and the steam id
+    # (this) url is used
+    
+    # TODO Get the populate_db.rb script to update avatars from existing users
+    # using this (or similar code)
+    sc_url = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0001/?key=#{STEAM_API_KEY}&steamids=#{steamId64}"
+    sc_res = JSON.parse(open(sc_url).read, { :symbolize_names => true })
+    player_list = sc_res[:response][:players][:player]
+    player_list.each do |player| 
+      update_user({
+        :steamId64 => player[:steamId64], 
+        :avatarUrl => player[:avatarfull],
+        :username => player[:personaname]
+      })
+      username = player[:personaname]
+      avatarUrl = player[:avatarfull]
+    end
+  else
+    avatarUrl = user[:avatarUrl]
+    username = user[:username]
+  end
+
+  # Now I can make the steam api call for the actual backpack
+  # api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
+  api_url = "backpack.json"
+  backpackJson = open(api_url).read 
+
+  backpack = JSON.parse(backpackJson, { :symbolize_names => true })
+  backpack = backpack[:result][:items][:item]
+
+  # Example of the use of this has
+  # classCategoryItem(<class>)(<slot>) = [ item_json, item_json ]
+  classSlotItem = Hash.new
+  # Populate hash with empty collections
+  CLASS_MASKS.each do |class_name, mask|
+    classSlotItem[class_name] = Hash.new
+    SLOT_INDEXES.each do |slot_name, slot_idx| 
+      classSlotItem[class_name][slot_name] = Hash.new
+    end
+  end
+
+  observedDefIds = Hash.new
+  miscs = []
+  duplicates = []
+  backpack.each do |bItem|
+      
+    # Get the schema entry for this item
+    schemaEntry = dbLookup(bItem[:defindex])
+    possibleClasses = ( schemaEntry[:item_classes] || '' ).split(',')
+    slot_name = schemaEntry[:item_slot]
+
+    if possibleClasses.empty? then
+      # Non-equippable item - like Scrap for example
+      miscs << {
+        :defindex => bItem[:defindex],
+        :real_name => bItem[:custom_name] || schemaEntry[:en_name],
+        :img_url => schemaEntry[:item_pic_url]
+      }
+    elsif observedDefIds[bItem[:defindex]] then
+
+      # Here just need to check that said item is not equipped, and to change the equipped
+      # value of the item in the classSlotItem hash if it is
+      possibleClasses.each do |class_name|
+        mask = CLASS_MASKS[class_name]
+        equipped = ( bItem[:inventory] & mask ) || 0 
+        if (equipped > 0) then
+          match = classSlotItem[class_name][slot_name][bItem[:defindex]]
+          match[:equipped] = true 
+        end
+      end
+
+      duplicates << {
+        :defindex => bItem[:defindex], 
+        :real_name => bItem[:custom_name] || schemaEntry[:en_name],
+        :img_url => schemaEntry[:item_pic_url]
+      }
+    else
+      
+      # Add this item to classSlotItem in the correct location(s)
+      possibleClasses.each do |class_name|
+
+        # Is the item equipped by this class?
+        mask = CLASS_MASKS[class_name]
+        equipped = ( bItem[:inventory] & mask ) || 0 
+
+        require 'pp'
+        pp bItem
+
+        classSlotItem[class_name][slot_name][bItem[:defindex]] = { 
+          :defindex => bItem[:defindex], 
+          :equipped => equipped > 1,
+          :real_name => bItem[:custom_name] || schemaEntry[:en_name],
+          :img_url => schemaEntry[:item_pic_url]
+        }
+      end
+
+      # Mark that we have seen this item now
+      observedDefIds[bItem[:defindex]] = 1
+    end
+
+  end
+
+  haml :backpack, :locals => {
+    :sections => SLOT_INDEXES.keys.sort { |one,two| SLOT_INDEXES[one] <=> SLOT_INDEXES[two] },
+    :username => username, 
+    :classSlotItem => classSlotItem,
+    :dupes => duplicates,
+    :miscs => miscs,
+    :avatarUrl => avatarUrl
+  }  
 end
    
 get '/privacy' do
     haml :privacy
 end
 
+# Generate stylesheets from sass templates
 get '/:ss_name.css' do
-  content_type 'text/css', :charset => 'utf-8'
+  # This can be cached long term because Heroku will flush its varnish
+  # front end on deploy 
+  expires 43200, :public, :must_revalidate
   sass params[:ss_name].intern
 end
 
 get '/:style_name/style.css' do
-  content_type 'text/css', :charset => 'utf-8'
-  redirect "/#{params[:style_name]}.css", 301
+  expires 43200, :public, :must_revalidate
+  redirect "/#{params[:style_name]}.css", 302
 end
 

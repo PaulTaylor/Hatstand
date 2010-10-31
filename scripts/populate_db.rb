@@ -22,7 +22,7 @@ res = XmlSimple.xml_in(
 # Items table - will be dropped and recreated 
 # - item identifier
 # - translated name
-DB = Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://items.db')
+DB = Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://hatstand.db')
 DB.create_table! :items do
   primary_key :pk
   Integer :item_id
@@ -44,13 +44,23 @@ db_items = DB[:items]
   # Replace item_slot with token for tokens
   if en_name['Slot Token'] then
     item_info[:item_slot][0] = 'Token'
+  elsif item_info[:item_slot][0] == 'pda2' then
+    item_info[:item_slot][0] = 'PDA'
+  elsif item_info[:item_slot] then
+    item_info[:item_slot] = item_info[:item_slot][0].capitalize
   end
 
+
   used_by_classes_raw = item_info[:used_by_classes]
+  require 'pp'
   if used_by_classes_raw.nil? then
     used_by_str = nil
   else
     used_by_str = used_by_classes_raw[0].values.join(',')
+  end
+ 
+  if used_by_str.nil? then
+    used_by_str = 'Scout,Soldier,Pyro,Demoman,Heavy,Engineer,Medic,Sniper,Spy'
   end
 
   # This will give the name only when it can be translated
@@ -63,3 +73,10 @@ db_items = DB[:items]
 end
 puts "Item count: #{db_items.count}"
 
+# Also recreate the users table
+DB.create_table! :users do
+  primary_key :pk
+  Long :steamId64
+  String :avatarUrl
+  String :username
+end
