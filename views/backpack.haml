@@ -22,7 +22,7 @@
   -# Dodge to leave the rest of the name as specified so that
   -# my name doesn't have a small D in
   = "#{username}'s Backpack"
-  %img.avatar{:src => avatarUrl}
+  %img.avatar{:alt => 'avatar', :src => avatarUrl}
 
 
 #vis_container.container
@@ -31,7 +31,7 @@
     %small
       [Click to expand]
   #vis_content.container 
-    %script{:type => 'text/javascript+protovis'}
+    %script{:type => 'text/javascript'}
       :plain
         /* Sizing and scales. */
         var w = 400,
@@ -41,9 +41,12 @@
             ;
 
         var pie_data = [ ];
-        for (var i in vis_data[0]) {
-          var class_array = vis_data[0][i];
-          class_cnt = pv.sum(class_array, function(d) d.items)
+        for (var i in vis_data) {
+          var class_array = vis_data[i];
+          var class_cnt = 0;
+          for (var s in class_array) {
+            class_cnt += Object.keys(class_array[s]).length;
+          }
           pie_data.push({
             clazz: i,
             items: class_cnt
@@ -56,8 +59,7 @@
         /* The root panel. */
         var root = new pv.Panel()
             .width(400 + w)
-            .height(h)
-            .data(vis_data);
+            .height(h);
         
         var bar_data = [];
         var bar_max = 0;
@@ -71,8 +73,8 @@
             .angle(a.by(function(d) d.items))
             .event('mousemove', function() {
               var bar_clazz = pie_data[this.index].clazz;
-              bar_data = vis_data[0][bar_clazz];
-              bar_max = pv.max(bar_data, function(d) d.items);
+              bar_data = vis_data[bar_clazz];
+              bar_max = pv.max(Object.keys(bar_data), function(k) Object.keys(bar_data[k]).length)
               root.render();
             })
             .event('mouseout', function() {
@@ -82,9 +84,13 @@
             })
           .anchor("center").add(pv.Label)
             .textAngle(0)
-            .text(function(d) d.clazz)
-            .textStyle('white')
-            ;
+            .text(function(d) d.clazz + '(' + d.items + ')')
+            .textStyle('white');
+
+        root.add(pv.Label)
+          .text('Item Breakdown (mouse over the pie)')
+          .right((4*80) + 20)
+          .bottom(0);
 
         root.add(pv.Rule)
             .data(function() pv.range(0, 15, 2))
@@ -99,23 +105,26 @@
 
         var bar_scale = pv.Colors.category20();
         var bar = root.add(pv.Bar)
-            .data(function(d) bar_data)
+          .data(function() Object.keys(bar_data).reverse().slice(0,4))
             .width(60)
-            .height(function(d) 20 * d.items)
+            .height(function(d) 20 * (Object.keys(bar_data[d]).length))
             .bottom(30)
-            .left(function(d) w + d.slot_index * 80)
-            .fillStyle(function(d) bar_scale(d.slot_index))
-          .anchor("bottom").add(pv.Label)
+            .left(function(d) w + this.index * 80)
+            .fillStyle(function(d) bar_scale(this.index));
+        bar.anchor("bottom").add(pv.Label)
             .textAngle(0)
-            .text(function(d) d.slot)
+            .text(function(d) d)
+            .textBaseline('top')
             .textStyle('black');
-
-        root.add(pv.Label)
-          .text('Item Breakdown (mouse over the pie)')
-          .right((4*80) + 20)
-          .bottom(0);
+        bar.anchor("top").add(pv.Label)
+            .textBaseline('bottom')
+            .textAngle(0)
+            .text(function(d) Object.keys(bar_data[d]).length)
+            .visible(function(d) Object.keys(bar_data[d]).length)
+            .textStyle('white');
 
         root.render();
+
 
 #items_container.container
   %h2 Unique Items

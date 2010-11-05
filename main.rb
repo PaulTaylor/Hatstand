@@ -236,9 +236,6 @@ get '/id/:steamId64' do
         mask = CLASS_MASKS[class_name]
         equipped = ( bItem[:inventory] & mask ) || 0 
 
-        require 'pp'
-        pp bItem
-
         classSlotItem[class_name][slot_name][bItem[:defindex]] = { 
           :defindex => bItem[:defindex], 
           :equipped => equipped > 1,
