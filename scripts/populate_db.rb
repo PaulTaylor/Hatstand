@@ -76,7 +76,7 @@ puts "Item count: #{db_items.count}"
 # Also recreate the users table
 DB.create_table! :users do
   primary_key :pk
-  Long :steamId64
+  Bignum :steamId64
   String :avatarUrl
   String :username
 end

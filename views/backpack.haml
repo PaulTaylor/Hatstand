@@ -11,7 +11,8 @@
     });
 
     // Tipsy
-    $('.item_name').tipsy({fade: true, gravity: $.fn.tipsy.autoWE, html: true, title: 'item_pic_img'});
+    $('.item_nameE').tipsy({fade: true, gravity: 'e', html: true, title: 'item_pic_img'});
+    $('.item_nameW').tipsy({fade: true, gravity: 'w', html: true, title: 'item_pic_img'});
 
   });
   
@@ -31,7 +32,7 @@
     %small
       [Click to expand]
   #vis_content.container 
-    %script{:type => 'text/javascript'}
+    %script{:type => 'text/javascript+protovis'}
       :plain
         /* Sizing and scales. */
         var w = 400,
@@ -145,12 +146,12 @@
             - equipped_imgs = item_detail[item[:real_name]]
             - if !equipped_imgs then
               - equipped_imgs = []
-              - item_detail[item[:real_name]] = equipped_imgs
+              - item_detail[item] = equipped_imgs
             - if item[:equipped] then
               - equipped_imgs << [class_pic_url] 
-        - item_detail.each do |item_name, equipped_pics|
+        - item_detail.each do |item, equipped_pics|
           %tr
-            %td= item_name
+            %td.item_nameE{:item_pic_img => "<img src='#{item[:img_url]}' />"}= item[:real_name]
             %td
               - equipped_pics.each do |url|
                 %img{:src => url}
@@ -158,9 +159,9 @@
   %h2 Dupes 
   %ul
     - dupes.each do |item|
-      %li.item_name{:item_pic_img => "<img src='#{item[:img_url]}' />"}= item[:real_name]
+      %li.item_nameW{:item_pic_img => "<img src='#{item[:img_url]}' />"}= item[:real_name]
 
   %h2 Misc Items
   %ul
     - miscs.each do |item|
-      %li.item_name{:item_pic_img => "<img src='#{item[:img_url]}' />"}= item[:real_name]
+      %li.item_nameW{:item_pic_img => "<img src='#{item[:img_url]}' />"}= item[:real_name]

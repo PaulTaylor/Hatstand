@@ -61,7 +61,7 @@ helpers do
   end
 
   def user(steamId64)
-    USERS.filter(:steamId64 => steamId64).first
+    USERS.filter(:steamId64 => steamId64.to_s).first
   end
 
   def update_user(updates)
@@ -174,8 +174,7 @@ get '/id/:steamId64' do
   end
 
   # Now I can make the steam api call for the actual backpack
-  # api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
-  api_url = "backpack.json"
+  api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
   backpackJson = open(api_url).read 
 
   backpack = JSON.parse(backpackJson, { :symbolize_names => true })
@@ -269,6 +268,7 @@ get '/:ss_name.css' do
   # This can be cached long term because Heroku will flush its varnish
   # front end on deploy 
   expires 43200, :public, :must_revalidate
+  content_type 'text/css', :charset => 'utf-8'
   sass params[:ss_name].intern
 end
 
