@@ -227,7 +227,18 @@ get '/id/:steamId64' do
         :img_url => schemaEntry[:item_pic_url]
       }
     else
-      
+
+      # Check to see if this item has been painted
+      col_val = nil
+      if bItem[:attributes] then
+        attr_list = bItem[:attributes][:attribute] 
+        col_attr = attr_list.detect { |a| a[:defindex] == 142 }
+        if (col_attr) then
+          col_int = col_attr[:float_value]
+          col_val = "#%06x" % col_int;
+        end
+      end
+
       # Add this item to classSlotItem in the correct location(s)
       possibleClasses.each do |class_name|
 
@@ -235,14 +246,20 @@ get '/id/:steamId64' do
         mask = CLASS_MASKS[class_name]
         equipped = ( bItem[:inventory] & mask ) || 0 
 
+        begin
         classSlotItem[class_name][slot_name][bItem[:defindex]] = { 
           :defindex => bItem[:defindex], 
           :equipped => equipped > 1,
           :real_name => bItem[:custom_name] || schemaEntry[:en_name],
           :img_url => schemaEntry[:item_pic_url]
         }
+        classSlotItem[class_name][slot_name][bItem[:defindex]][:paint_col] = col_val unless col_val.nil?  
+        
+        rescue
+          puts "class = #{class_name}, slot = #{slot_name}"
+        end
       end
-
+      
       # Mark that we have seen this item now
       observedDefIds[bItem[:defindex]] = 1
     end

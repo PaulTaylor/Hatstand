@@ -151,7 +151,14 @@
               - equipped_imgs << [class_pic_url] 
         - item_detail.each do |item, equipped_pics|
           %tr
-            %td.item_nameE{:item_pic_img => "<img src='#{item[:img_url]}' />"}= item[:real_name]
+            %td
+              - border_style = '0'
+              - if item[:paint_col].nil?
+                - item[:paint_col] = 'white'
+              %span{:style => "color:#{item[:paint_col]}; background-color: #{item[:paint_col]};display:inline-block;", :height => '1em', :width => '1.5em'}
+                HH
+              %span.item_nameE{:item_pic_img => "<img style='border: #{border_style};' src='#{item[:img_url]}' />", :class => 'item_name'}
+                = item[:real_name]
             %td
               - equipped_pics.each do |url|
                 %img{:src => url}
