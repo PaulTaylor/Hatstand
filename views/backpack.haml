@@ -143,13 +143,15 @@
         - classSlotItem.each do |class_name, slots|
           - class_pic_url = "/valve-imgs/20px-Leaderboard_class_#{class_name.downcase}.png"
           - classSlotItem[class_name][section].values.each do |item|
-            - equipped_imgs = item_detail[item]
+            - item_detail[item[:defindex]] ||= item
+            - equipped_imgs = item_detail[item[:defindex]][:equipped_pics]
             - if !equipped_imgs then
               - equipped_imgs = []
-              - item_detail[item] = equipped_imgs
+              - item_detail[item[:defindex]][:equipped_pics] = equipped_imgs
             - if item[:equipped] then
               - equipped_imgs << class_pic_url 
-        - item_detail.each do |item, equipped_pics|
+        - item_detail.each do |item_idx, item|
+          - equipped_pics = item[:equipped_pics]
           %tr
             %td
               - border_style = '0'
