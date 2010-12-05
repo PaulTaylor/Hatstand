@@ -21,6 +21,13 @@ require 'open-uri'
 require 'xml'
 require 'json/ext'
 
+# MongoDB for stats
+require 'mongo'
+mgo_uri = URI.parse(ENV['MONGOHQ_URL'])
+mgo_conn = Mongo::Connection.from_uri(ENV['MONGOHQ_URL'])
+MGO_DB = mgo_conn.db(mgo_uri.path.gsub(/^\//, ''))
+puts 'connected to mongohq'
+
 # Some constants
 STARTUP_TIME = Time.now
 STEAM_API_KEY = ENV['steam_api_key']
@@ -149,6 +156,21 @@ get '/id/:steamId64' do
   user = user(steamId64)
   avatarUrl = ''
   username = ''
+
+  # Poke MongoDB for stats (only on production)
+  if production? then
+    coll = MGO_DB['stats']
+    mgo_doc = coll.find({'steamId64' => steamId64}).to_a[0]
+    unless mgo_doc
+      mgo_doc = {
+        'steamId64' => steamId64,
+        'count' => 0,
+        'lastTime' => Time.now
+      }
+      mgo_doc = { '_id' => coll.insert(mgo_doc) }
+    end
+    coll.update({'_id' => mgo_doc['_id']}, {'$inc' => {'count', 1}, '$set' => { 'lastTime' => Time.now }})
+  end
 
   if user.nil? then
     # This could be the case if the users table is empty and the steam id

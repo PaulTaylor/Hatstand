@@ -5,4 +5,4 @@ libxml-ruby --version '>=1.1.4'
 json --version '=1.4.3'
 xml-simple --version '>=1.0.12'
 RedCloth --version '>=4.2.3'
-
+mongo --version '>=1.1.4'
