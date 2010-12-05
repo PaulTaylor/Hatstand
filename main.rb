@@ -247,14 +247,14 @@ get '/id/:steamId64' do
         equipped = ( bItem[:inventory] & mask ) || 0 
 
         begin
-        classSlotItem[class_name][slot_name][bItem[:defindex]] = { 
-          :defindex => bItem[:defindex], 
-          :equipped => equipped > 1,
-          :real_name => bItem[:custom_name] || schemaEntry[:en_name],
-          :img_url => schemaEntry[:item_pic_url]
-        }
-        classSlotItem[class_name][slot_name][bItem[:defindex]][:paint_col] = col_val unless col_val.nil?  
-        
+          classSlotItem[class_name][slot_name][bItem[:defindex]] = { 
+            :defindex => bItem[:defindex], 
+            :equipped => equipped > 1,
+            :real_name => bItem[:custom_name] || schemaEntry[:en_name],
+            :img_url => schemaEntry[:item_pic_url],
+            :tradable => if bItem[:flag_cannot_trade] then false else true end
+          }
+          classSlotItem[class_name][slot_name][bItem[:defindex]][:paint_col] = col_val unless col_val.nil?  
         rescue
           puts "class = #{class_name}, slot = #{slot_name}"
         end

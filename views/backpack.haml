@@ -143,12 +143,12 @@
         - classSlotItem.each do |class_name, slots|
           - class_pic_url = "/valve-imgs/20px-Leaderboard_class_#{class_name.downcase}.png"
           - classSlotItem[class_name][section].values.each do |item|
-            - equipped_imgs = item_detail[item[:real_name]]
+            - equipped_imgs = item_detail[item]
             - if !equipped_imgs then
               - equipped_imgs = []
               - item_detail[item] = equipped_imgs
             - if item[:equipped] then
-              - equipped_imgs << [class_pic_url] 
+              - equipped_imgs << class_pic_url 
         - item_detail.each do |item, equipped_pics|
           %tr
             %td
@@ -159,6 +159,9 @@
                 HH
               %span.item_nameE{:item_pic_img => "<img style='border: #{border_style};' src='#{item[:img_url]}' />", :class => 'item_name'}
                 = item[:real_name]
+              %span
+                - unless item[:tradable]
+                  %strong [Not-tradable]
             %td
               - equipped_pics.each do |url|
                 %img{:src => url}
