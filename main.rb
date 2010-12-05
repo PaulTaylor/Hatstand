@@ -22,11 +22,13 @@ require 'xml'
 require 'json/ext'
 
 # MongoDB for stats
-require 'mongo'
-mgo_uri = URI.parse(ENV['MONGOHQ_URL'])
-mgo_conn = Mongo::Connection.from_uri(ENV['MONGOHQ_URL'])
-MGO_DB = mgo_conn.db(mgo_uri.path.gsub(/^\//, ''))
-puts 'connected to mongohq'
+if production? then
+  require 'mongo'
+  mgo_uri = URI.parse(ENV['MONGOHQ_URL'])
+  mgo_conn = Mongo::Connection.from_uri(ENV['MONGOHQ_URL'])
+  MGO_DB = mgo_conn.db(mgo_uri.path.gsub(/^\//, ''))
+  puts 'connected to mongohq'
+end
 
 # Some constants
 STARTUP_TIME = Time.now
