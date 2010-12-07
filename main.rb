@@ -78,6 +78,25 @@ helpers do
     USERS.insert(updates)
   end
 
+  def poke_mongo(steamId64)
+    # Poke MongoDB for stats (only on production)
+    if production? then
+      coll = MGO_DB['stats']
+      mgo_doc = coll.find({'steamId64' => steamId64}).to_a[0]
+      unless mgo_doc
+        mgo_doc = {
+          'steamId64' => steamId64,
+          'count' => 0,
+          'lastTime' => Time.now
+        }
+        mgo_doc = { '_id' => coll.insert(mgo_doc) }
+      end
+      coll.update({'_id' => mgo_doc['_id']}, {'$inc' => {'count', 1}, '$set' => { 'lastTime' => Time.now }})
+    else
+      puts "Would have poked mongo with #{steamId64}"
+    end
+  end
+
 end
 
 get '/' do
@@ -159,21 +178,6 @@ get '/id/:steamId64' do
   avatarUrl = ''
   username = ''
 
-  # Poke MongoDB for stats (only on production)
-  if production? then
-    coll = MGO_DB['stats']
-    mgo_doc = coll.find({'steamId64' => steamId64}).to_a[0]
-    unless mgo_doc
-      mgo_doc = {
-        'steamId64' => steamId64,
-        'count' => 0,
-        'lastTime' => Time.now
-      }
-      mgo_doc = { '_id' => coll.insert(mgo_doc) }
-    end
-    coll.update({'_id' => mgo_doc['_id']}, {'$inc' => {'count', 1}, '$set' => { 'lastTime' => Time.now }})
-  end
-
   if user.nil? then
     # This could be the case if the users table is empty and the steam id
     # (this) url is used
@@ -202,102 +206,112 @@ get '/id/:steamId64' do
   backpackJson = open(api_url).read 
 
   backpack = JSON.parse(backpackJson, { :symbolize_names => true })
-  backpack = backpack[:result][:items][:item]
 
-  # Example of the use of this has
-  # classCategoryItem(<class>)(<slot>) = [ item_json, item_json ]
-  classSlotItem = Hash.new
-  # Populate hash with empty collections
-  CLASS_MASKS.each do |class_name, mask|
-    classSlotItem[class_name] = Hash.new
-    SLOT_INDEXES.each do |slot_name, slot_idx| 
-      classSlotItem[class_name][slot_name] = Hash.new
-    end
-  end
+  unless backpack[:result][:status] == 1 then
+    haml :private, :locals => {
+      :username => username,
+      :avatarUrl => avatarUrl
+    }
+  else
 
-  observedDefIds = Hash.new
-  miscs = []
-  duplicates = []
-  backpack.each do |bItem|
-      
-    # Get the schema entry for this item
-    schemaEntry = dbLookup(bItem[:defindex])
-    possibleClasses = ( schemaEntry[:item_classes] || '' ).split(',')
-    slot_name = schemaEntry[:item_slot]
+    poke_mongo(steamId64)
 
-    if possibleClasses.empty? then
-      # Non-equippable item - like Scrap for example
-      miscs << {
-        :defindex => bItem[:defindex],
-        :real_name => bItem[:custom_name] || schemaEntry[:en_name],
-        :img_url => schemaEntry[:item_pic_url]
-      }
-    elsif observedDefIds[bItem[:defindex]] then
+    backpack = backpack[:result][:items][:item]
 
-      # Here just need to check that said item is not equipped, and to change the equipped
-      # value of the item in the classSlotItem hash if it is
-      possibleClasses.each do |class_name|
-        mask = CLASS_MASKS[class_name]
-        equipped = ( bItem[:inventory] & mask ) || 0 
-        if (equipped > 0) then
-          match = classSlotItem[class_name][slot_name][bItem[:defindex]]
-          match[:equipped] = true 
-        end
+    # Example of the use of this has
+    # classCategoryItem(<class>)(<slot>) = [ item_json, item_json ]
+    classSlotItem = Hash.new
+    # Populate hash with empty collections
+    CLASS_MASKS.each do |class_name, mask|
+      classSlotItem[class_name] = Hash.new
+      SLOT_INDEXES.each do |slot_name, slot_idx| 
+        classSlotItem[class_name][slot_name] = Hash.new
       end
-
-      duplicates << {
-        :defindex => bItem[:defindex], 
-        :real_name => bItem[:custom_name] || schemaEntry[:en_name],
-        :img_url => schemaEntry[:item_pic_url]
-      }
-    else
-
-      # Check to see if this item has been painted
-      col_val = nil
-      if bItem[:attributes] then
-        attr_list = bItem[:attributes][:attribute] 
-        col_attr = attr_list.detect { |a| a[:defindex] == 142 }
-        if (col_attr) then
-          col_int = col_attr[:float_value]
-          col_val = "#%06x" % col_int;
-        end
-      end
-
-      # Add this item to classSlotItem in the correct location(s)
-      possibleClasses.each do |class_name|
-
-        # Is the item equipped by this class?
-        mask = CLASS_MASKS[class_name]
-        equipped = ( bItem[:inventory] & mask ) || 0 
-
-        begin
-          classSlotItem[class_name][slot_name][bItem[:defindex]] = { 
-            :defindex => bItem[:defindex], 
-            :equipped => equipped > 1,
-            :real_name => bItem[:custom_name] || schemaEntry[:en_name],
-            :img_url => schemaEntry[:item_pic_url],
-            :tradable => if bItem[:flag_cannot_trade] then false else true end
-          }
-          classSlotItem[class_name][slot_name][bItem[:defindex]][:paint_col] = col_val unless col_val.nil?  
-        rescue
-          puts "class = #{class_name}, slot = #{slot_name}"
-        end
-      end
-      
-      # Mark that we have seen this item now
-      observedDefIds[bItem[:defindex]] = 1
     end
 
-  end
+    observedDefIds = Hash.new
+    miscs = []
+    duplicates = []
+    backpack.each do |bItem|
+        
+      # Get the schema entry for this item
+      schemaEntry = dbLookup(bItem[:defindex])
+      possibleClasses = ( schemaEntry[:item_classes] || '' ).split(',')
+      slot_name = schemaEntry[:item_slot]
 
-  haml :backpack, :locals => {
-    :sections => SLOT_INDEXES.keys.sort { |one,two| SLOT_INDEXES[one] <=> SLOT_INDEXES[two] },
-    :username => username, 
-    :classSlotItem => classSlotItem,
-    :dupes => duplicates,
-    :miscs => miscs,
-    :avatarUrl => avatarUrl
-  }  
+      if possibleClasses.empty? then
+        # Non-equippable item - like Scrap for example
+        miscs << {
+          :defindex => bItem[:defindex],
+          :real_name => bItem[:custom_name] || schemaEntry[:en_name],
+          :img_url => schemaEntry[:item_pic_url]
+        }
+      elsif observedDefIds[bItem[:defindex]] then
+
+        # Here just need to check that said item is not equipped, and to change the equipped
+        # value of the item in the classSlotItem hash if it is
+        possibleClasses.each do |class_name|
+          mask = CLASS_MASKS[class_name]
+          equipped = ( bItem[:inventory] & mask ) || 0 
+          if (equipped > 0) then
+            match = classSlotItem[class_name][slot_name][bItem[:defindex]]
+            match[:equipped] = true 
+          end
+        end
+
+        duplicates << {
+          :defindex => bItem[:defindex], 
+          :real_name => bItem[:custom_name] || schemaEntry[:en_name],
+          :img_url => schemaEntry[:item_pic_url]
+        }
+      else
+
+        # Check to see if this item has been painted
+        col_val = nil
+        if bItem[:attributes] then
+          attr_list = bItem[:attributes][:attribute] 
+          col_attr = attr_list.detect { |a| a[:defindex] == 142 }
+          if (col_attr) then
+            col_int = col_attr[:float_value]
+            col_val = "#%06x" % col_int;
+          end
+        end
+
+        # Add this item to classSlotItem in the correct location(s)
+        possibleClasses.each do |class_name|
+
+          # Is the item equipped by this class?
+          mask = CLASS_MASKS[class_name]
+          equipped = ( bItem[:inventory] & mask ) || 0 
+
+          begin
+            classSlotItem[class_name][slot_name][bItem[:defindex]] = { 
+              :defindex => bItem[:defindex], 
+              :equipped => equipped > 1,
+              :real_name => bItem[:custom_name] || schemaEntry[:en_name],
+              :img_url => schemaEntry[:item_pic_url],
+              :tradable => if bItem[:flag_cannot_trade] then false else true end
+            }
+            classSlotItem[class_name][slot_name][bItem[:defindex]][:paint_col] = col_val unless col_val.nil?  
+          rescue
+            puts "class = #{class_name}, slot = #{slot_name}"
+          end
+        end
+        
+        # Mark that we have seen this item now
+        observedDefIds[bItem[:defindex]] = 1
+      end
+    end
+
+    haml :backpack, :locals => {
+      :sections => SLOT_INDEXES.keys.sort { |one,two| SLOT_INDEXES[one] <=> SLOT_INDEXES[two] },
+      :username => username, 
+      :classSlotItem => classSlotItem,
+      :dupes => duplicates,
+      :miscs => miscs,
+      :avatarUrl => avatarUrl
+    }  
+  end
 end
    
 get '/privacy' do
@@ -317,4 +331,3 @@ get '/:style_name/style.css' do
   expires 43200, :public, :must_revalidate
   redirect "/#{params[:style_name]}.css", 302
 end
-
