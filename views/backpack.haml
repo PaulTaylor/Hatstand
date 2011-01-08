@@ -4,10 +4,10 @@
     // Table sorter
     $('table').tablesorter();
 
-   // Protovis
-    $('#vis_content').hide();
-    $('#vis_header').click(function() {
-      $('#vis_content').slideToggle(600);
+    // Protovis
+    $('.closed').hide();
+    $('.expando h3').click(function() {
+      $(this).next().slideToggle(500);
     });
 
     // Tipsy
@@ -26,12 +26,12 @@
   %img.avatar{:alt => 'avatar', :src => avatarUrl}
 
 
-#vis_container.container
-  %h2#vis_header 
-    Visualisations
+#vis_container.container.expando
+  %h3#vis_header 
+    Item Chart
     %small
-      [Click to expand]
-  #vis_content.container 
+      [Click to hide]
+  #vis_content.container
     %script{:type => 'text/javascript+protovis'}
       :plain
         /* Sizing and scales. */
@@ -63,7 +63,7 @@
             .height(h);
         
         var bar_data = [];
-        var bar_max = 0;
+        var bar_max = 10;
 
         var vis = root.add(pv.Wedge)
             .data(pie_data)
@@ -76,11 +76,13 @@
               var bar_clazz = pie_data[this.index].clazz;
               bar_data = vis_data[bar_clazz];
               bar_max = pv.max(Object.keys(bar_data), function(k) Object.keys(bar_data[k]).length)
+              bar_scale = pv.Scale.linear(0, bar_max).range(30,290);
               root.render();
             })
             .event('mouseout', function() {
               bar_data = [];
-              bar_max = 0;
+              bar_max = 10;
+              bar_scale = pv.Scale.linear(0, bar_max).range(30,290);
               root.render();
             })
           .anchor("center").add(pv.Label)
@@ -92,10 +94,10 @@
           .text('Item Breakdown (mouse over the pie)')
           .right((4*80) + 20)
           .bottom(0);
-
-        root.add(pv.Rule)
-            .data(function() pv.range(0, 15, 2))
-            .bottom(function(d) 30 + d * 20)
+        
+        var bar_rule = root.add(pv.Rule)
+            .data(function() pv.range(0, bar_max + 1, 2))
+            .bottom(function(d) bar_scale(d))
             .width(4 * 80)
             .left(w - 10)
             .strokeStyle("black")
@@ -104,14 +106,17 @@
             .textBaseline("middle")
             .text(function(d) d);
 
-        var bar_scale = pv.Colors.category20();
+        var bar_colors = pv.Colors.category20();
+        var bar_scale = pv.Scale.linear(0, bar_max).range(30,290);
         var bar = root.add(pv.Bar)
           .data(function() Object.keys(bar_data).reverse().slice(0,4))
             .width(60)
-            .height(function(d) 20 * (Object.keys(bar_data[d]).length))
+            .height(function(d) {
+              return -30 + bar_scale(Object.keys(bar_data[d]).length);
+            })
             .bottom(30)
             .left(function(d) w + this.index * 80)
-            .fillStyle(function(d) bar_scale(this.index));
+            .fillStyle(function(d) bar_colors(this.index));
         bar.anchor("bottom").add(pv.Label)
             .textAngle(0)
             .text(function(d) d)
@@ -127,12 +132,13 @@
         root.render();
 
 
-#items_container.container
-  %h2 Unique Items
-
-  - sections.each do |section|
-    %h3= section
-    %table.tablesorter
+- sections.each do |section|
+  .container.expando
+    %h3
+      = section
+      %small
+        [Click to expand/hide]
+    %table.tablesorter.closed
       %thead
         %tr
           %th Item Name
@@ -156,7 +162,7 @@
             %td
               - border_style = '0'
               - if item[:paint_col].nil?
-                - item[:paint_col] = 'white'
+                - item[:paint_col] = 'transparent'
               %span{:style => "color:#{item[:paint_col]}; background-color: #{item[:paint_col]};display:inline-block;", :height => '1em', :width => '1.5em'}
                 HH
               %span.item_nameE{:item_pic_img => "<img style='border: #{border_style};' src='#{item[:img_url]}' />", :class => 'item_name'}
@@ -168,12 +174,24 @@
               - equipped_pics.each do |url|
                 %img{:src => url}
   
-  %h2 Dupes 
-  %ul
-    - dupes.each do |item|
-      %li.item_nameW{:item_pic_img => "<img src='#{item[:img_url]}' />"}= item[:real_name]
-
-  %h2 Misc Items
-  %ul
-    - miscs.each do |item|
-      %li.item_nameW{:item_pic_img => "<img src='#{item[:img_url]}' />"}= item[:real_name]
+.container.expando
+  %h3 
+    Duplicates
+    %small
+      [Click to expand/hide]
+  %ul.closed
+    - dupes.group_by { |i| i[:real_name] }.each do |item_type, item_list|
+      - item = item_list[0]
+      %li.item_nameW{:item_pic_img => "<img src='#{item[:img_url]}' />"}
+        = "#{item[:real_name]} (#{item_list.size})"
+  
+.container.expando
+  %h3 
+    Unequipable Items
+    %small
+      [Click to expand/hide]
+  %ul.closed
+    - miscs.group_by { |i| i[:real_name] }.each do |item_type, item_list|
+      - item = item_list[0]
+      %li.item_nameW{:item_pic_img => "<img src='#{item[:img_url]}' />"}
+        = "#{item[:real_name]} (#{item_list.size})"

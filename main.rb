@@ -55,7 +55,7 @@ SLOT_INDEXES.update({
   'Secondary' => 2,
   'Melee' => 3,
   'PDA' => 4,
-  'Misc' => 5
+  'Misc' => 99
 })
 
 # Define some helpers
@@ -284,6 +284,9 @@ get '/id/:steamId64' do
           mask = CLASS_MASKS[class_name]
           equipped = ( bItem[:inventory] & mask ) || 0 
 
+          # Put items with unknown slots into misc
+          slot_name = 'Misc' unless SLOT_INDEXES[slot_name] < 100
+
           begin
             classSlotItem[class_name][slot_name][bItem[:defindex]] = { 
               :defindex => bItem[:defindex], 
@@ -327,7 +330,3 @@ get '/:ss_name.css' do
   sass params[:ss_name].intern
 end
 
-get '/:style_name/style.css' do
-  expires 43200, :public, :must_revalidate
-  redirect "/#{params[:style_name]}.css", 302
-end
