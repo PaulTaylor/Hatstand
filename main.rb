@@ -254,8 +254,12 @@ get '/id/:steamId64' do
           mask = CLASS_MASKS[class_name]
           equipped = ( bItem[:inventory] & mask ) || 0 
           if (equipped > 0) then
-            match = classSlotItem[class_name][slot_name][bItem[:defindex]]
-            match[:equipped] = true 
+            begin
+              match = classSlotItem[class_name][slot_name][bItem[:defindex]]
+              match[:equipped] = true 
+            rescue
+              puts "nil - #{class_name}, #{slot_name} - defindex: #{bItem[:defindex]}"
+            end
           end
         end
 
