@@ -48,7 +48,7 @@ CLASS_MASKS = {
 }
 
 # Define a predictable order for item slots
-SLOT_INDEXES = Hash.new(99999)
+SLOT_INDEXES = Hash.new(99)
 SLOT_INDEXES.update({
   'Head' => 0,
   'Primary' => 1,
@@ -238,6 +238,7 @@ get '/id/:steamId64' do
       schemaEntry = dbLookup(bItem[:defindex])
       possibleClasses = ( schemaEntry[:item_classes] || '' ).split(',')
       slot_name = schemaEntry[:item_slot]
+      slot_name = 'Misc' if slot_name == 'Action'
 
       if possibleClasses.empty? then
         # Non-equippable item - like Scrap for example
@@ -254,12 +255,8 @@ get '/id/:steamId64' do
           mask = CLASS_MASKS[class_name]
           equipped = ( bItem[:inventory] & mask ) || 0 
           if (equipped > 0) then
-            begin
               match = classSlotItem[class_name][slot_name][bItem[:defindex]]
-              match[:equipped] = true 
-            rescue
-              puts "nil - #{class_name}, #{slot_name} - defindex: #{bItem[:defindex]}"
-            end
+              match[:equipped] = true if match 
           end
         end
 
@@ -289,7 +286,7 @@ get '/id/:steamId64' do
           equipped = ( bItem[:inventory] & mask ) || 0 
 
           # Put items with unknown slots into misc
-          slot_name = 'Misc' unless SLOT_INDEXES[slot_name] < 100
+          slot_name = 'Misc' unless SLOT_INDEXES[slot_name] < 10
 
           begin
             classSlotItem[class_name][slot_name][bItem[:defindex]] = { 
