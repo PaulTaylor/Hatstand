@@ -91,7 +91,7 @@ helpers do
         }
         mgo_doc = { '_id' => coll.insert(mgo_doc) }
       end
-      coll.update({'_id' => mgo_doc['_id']}, {'$inc' => {'count', 1}, '$set' => { 'lastTime' => Time.now }})
+      coll.update({'_id' => mgo_doc['_id']}, {'$inc' => {'count' => 1}, '$set' => { 'lastTime' => Time.now }})
     else
       puts "Would have poked mongo with #{steamId64}"
     end
