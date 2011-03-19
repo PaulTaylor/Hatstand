@@ -1,0 +1,682 @@
+{
+	"result": {
+		"status": 1,
+		"num_backpack_slots": 300,
+		"items": {
+			"item": [
+				{
+					"id": 94364,
+					"defindex": 116,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483902,
+					"quantity": 1
+				},
+				{
+					"id": 2059751,
+					"defindex": 125,
+					"level": 1,
+					"quality": 6,
+					"inventory": 2147483753,
+					"quantity": 1,
+					"flag_cannot_trade": true
+				},
+				{
+					"id": 2247185,
+					"defindex": 36,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2148532397,
+					"quantity": 1
+				},
+				{
+					"id": 2247193,
+					"defindex": 43,
+					"level": 7,
+					"quality": 3,
+					"inventory": 2147483800,
+					"quantity": 1
+				},
+				{
+					"id": 11336250,
+					"defindex": 61,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2155872450,
+					"quantity": 1
+				},
+				{
+					"id": 24057384,
+					"defindex": 37,
+					"level": 2,
+					"quality": 3,
+					"inventory": 2148532395,
+					"quantity": 1
+				},
+				{
+					"id": 24638049,
+					"defindex": 35,
+					"level": 77,
+					"quality": 3,
+					"inventory": 2147483820,
+					"quantity": 1
+				},
+				{
+					"id": 28337690,
+					"defindex": 60,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2155872449,
+					"quantity": 1
+				},
+				{
+					"id": 31774479,
+					"defindex": 42,
+					"level": 1,
+					"quality": 3,
+					"inventory": 2149580953,
+					"quantity": 1
+				},
+				{
+					"id": 36514959,
+					"defindex": 55,
+					"level": 54,
+					"quality": 3,
+					"inventory": 2155872447,
+					"quantity": 1
+				},
+				{
+					"id": 36712174,
+					"defindex": 38,
+					"level": 10,
+					"quality": 3,
+					"inventory": 2151678084,
+					"quantity": 1
+				},
+				{
+					"id": 36854827,
+					"defindex": 39,
+					"level": 10,
+					"quality": 3,
+					"inventory": 2147483783,
+					"quantity": 1
+				},
+				{
+					"id": 42617381,
+					"defindex": 115,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483751,
+					"quantity": 1,
+					"flag_cannot_trade": true
+				},
+				{
+					"id": 42642250,
+					"defindex": 116,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483901,
+					"quantity": 1
+				},
+				{
+					"id": 44764538,
+					"defindex": 44,
+					"level": 15,
+					"quality": 3,
+					"inventory": 2147483759,
+					"quantity": 1
+				},
+				{
+					"id": 52304259,
+					"defindex": 132,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483791,
+					"quantity": 1
+				},
+				{
+					"id": 52639644,
+					"defindex": 128,
+					"level": 10,
+					"quality": 3,
+					"inventory": 2147745917,
+					"quantity": 1
+				},
+				{
+					"id": 65044199,
+					"defindex": 129,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483770,
+					"quantity": 1
+				},
+				{
+					"id": 65082540,
+					"defindex": 99,
+					"level": 35,
+					"quality": 3,
+					"inventory": 2147745913,
+					"quantity": 1
+				},
+				{
+					"id": 69839662,
+					"defindex": 139,
+					"level": 23,
+					"quality": 3,
+					"inventory": 2147483754,
+					"quantity": 1
+				},
+				{
+					"id": 69841813,
+					"defindex": 56,
+					"level": 10,
+					"quality": 3,
+					"inventory": 2147483829,
+					"quantity": 1
+				},
+				{
+					"id": 71717585,
+					"defindex": 130,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483790,
+					"quantity": 1
+				},
+				{
+					"id": 72731183,
+					"defindex": 131,
+					"level": 10,
+					"quality": 3,
+					"inventory": 2147483789,
+					"quantity": 1
+				},
+				{
+					"id": 72785907,
+					"defindex": 159,
+					"level": 1,
+					"quality": 3,
+					"inventory": 2147483803,
+					"quantity": 1
+				},
+				{
+					"id": 73012624,
+					"defindex": 58,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483830,
+					"quantity": 1
+				},
+				{
+					"id": 75383023,
+					"defindex": 40,
+					"level": 10,
+					"quality": 3,
+					"inventory": 2147483782,
+					"quantity": 1
+				},
+				{
+					"id": 77886805,
+					"defindex": 153,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483781,
+					"quantity": 1
+				},
+				{
+					"id": 78854179,
+					"defindex": 165,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483752,
+					"quantity": 1,
+					"flag_cannot_trade": true,
+					"attributes": {
+						"attribute": [
+							{
+								"defindex": 143,
+								"value": 1212921728,
+								"float_value": 208606.000000
+							}
+						]
+					}
+				},
+				{
+					"id": 80900349,
+					"defindex": 41,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483802,
+					"quantity": 1
+				},
+				{
+					"id": 86144209,
+					"defindex": 46,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483760,
+					"quantity": 1
+				},
+				{
+					"id": 86426958,
+					"defindex": 96,
+					"level": 29,
+					"quality": 3,
+					"inventory": 2149580951,
+					"quantity": 1
+				},
+				{
+					"id": 92005994,
+					"defindex": 143,
+					"level": 61,
+					"quality": 6,
+					"inventory": 2180972645,
+					"quantity": 1
+				},
+				{
+					"id": 94613591,
+					"defindex": 172,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483792,
+					"quantity": 1
+				},
+				{
+					"id": 96705195,
+					"defindex": 133,
+					"level": 10,
+					"quality": 3,
+					"inventory": 2147483771,
+					"quantity": 1
+				},
+				{
+					"id": 98032064,
+					"defindex": 154,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483774,
+					"quantity": 1
+				},
+				{
+					"id": 105180162,
+					"defindex": 171,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147614904,
+					"quantity": 1
+				},
+				{
+					"id": 108300394,
+					"defindex": 141,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2164261027,
+					"quantity": 1
+				},
+				{
+					"id": 109157510,
+					"defindex": 59,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483840,
+					"quantity": 1
+				},
+				{
+					"id": 109183170,
+					"defindex": 140,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2164261025,
+					"quantity": 1
+				},
+				{
+					"id": 112467818,
+					"defindex": 105,
+					"level": 61,
+					"quality": 3,
+					"inventory": 2151678083,
+					"quantity": 1
+				},
+				{
+					"id": 114293711,
+					"defindex": 189,
+					"level": 20,
+					"quality": 6,
+					"inventory": 2147483900,
+					"quantity": 1
+				},
+				{
+					"id": 121694732,
+					"defindex": 45,
+					"level": 10,
+					"quality": 3,
+					"inventory": 2147483761,
+					"quantity": 1
+				},
+				{
+					"id": 128317423,
+					"defindex": 240,
+					"level": 86,
+					"quality": 6,
+					"inventory": 2147483775,
+					"quantity": 1
+				},
+				{
+					"id": 136946710,
+					"defindex": 127,
+					"level": 1,
+					"quality": 3,
+					"inventory": 2147483772,
+					"quantity": 1
+				},
+				{
+					"id": 142007866,
+					"defindex": 142,
+					"level": 15,
+					"quality": 6,
+					"inventory": 2164261026,
+					"quantity": 1
+				},
+				{
+					"id": 142023287,
+					"defindex": 163,
+					"level": 5,
+					"quality": 3,
+					"inventory": 2147483762,
+					"quantity": 1
+				},
+				{
+					"id": 145778615,
+					"defindex": 57,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483831,
+					"quantity": 1
+				},
+				{
+					"id": 150659111,
+					"defindex": 264,
+					"level": 5,
+					"quality": 6,
+					"inventory": 2147483794,
+					"quantity": 1
+				},
+				{
+					"id": 150659113,
+					"defindex": 263,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147549286,
+					"quantity": 1
+				},
+				{
+					"id": 152077275,
+					"defindex": 239,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2149580956,
+					"quantity": 1
+				},
+				{
+					"id": 162652952,
+					"defindex": 155,
+					"level": 20,
+					"quality": 6,
+					"inventory": 2147483812,
+					"quantity": 1
+				},
+				{
+					"id": 164731471,
+					"defindex": 214,
+					"level": 5,
+					"quality": 6,
+					"inventory": 2147483784,
+					"quantity": 1
+				},
+				{
+					"id": 166444418,
+					"defindex": 278,
+					"level": 31,
+					"quality": 6,
+					"inventory": 2147483903,
+					"quantity": 1,
+					"flag_cannot_trade": true
+				},
+				{
+					"id": 167793552,
+					"defindex": 267,
+					"level": 4,
+					"quality": 5,
+					"inventory": 2147483699,
+					"quantity": 1,
+					"flag_cannot_trade": true
+				},
+				{
+					"id": 167820317,
+					"defindex": 270,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483700,
+					"quantity": 1
+				},
+				{
+					"id": 169367861,
+					"defindex": 215,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2151678089,
+					"quantity": 1
+				},
+				{
+					"id": 169385701,
+					"defindex": 5045,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483748,
+					"quantity": 1,
+					"attributes": {
+						"attribute": [
+							{
+								"defindex": 187,
+								"value": 1084227584,
+								"float_value": 5.000000
+							}
+						]
+					}
+				},
+				{
+					"id": 171740355,
+					"defindex": 173,
+					"level": 5,
+					"quality": 6,
+					"inventory": 2147483822,
+					"quantity": 1
+				},
+				{
+					"id": 181800453,
+					"defindex": 47,
+					"level": 8,
+					"quality": 6,
+					"inventory": 2148008081,
+					"quantity": 1
+				},
+				{
+					"id": 182274733,
+					"defindex": 220,
+					"level": 1,
+					"quality": 6,
+					"inventory": 2147483763,
+					"quantity": 1
+				},
+				{
+					"id": 184549898,
+					"defindex": 226,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483776,
+					"quantity": 1
+				},
+				{
+					"id": 185203262,
+					"defindex": 221,
+					"level": 42,
+					"quality": 6,
+					"inventory": 2147549300,
+					"quantity": 1
+				},
+				{
+					"id": 185206228,
+					"defindex": 231,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483833,
+					"quantity": 1
+				},
+				{
+					"id": 190130058,
+					"defindex": 5002,
+					"level": 3,
+					"quality": 6,
+					"inventory": 2147483689,
+					"quantity": 1
+				},
+				{
+					"id": 196673760,
+					"defindex": 224,
+					"level": 5,
+					"quality": 6,
+					"inventory": 2147483843,
+					"quantity": 1
+				},
+				{
+					"id": 197580512,
+					"defindex": 61,
+					"level": 5,
+					"quality": 6,
+					"inventory": 2147483654,
+					"quantity": 1
+				},
+				{
+					"id": 203193024,
+					"defindex": 50,
+					"level": 41,
+					"quality": 6,
+					"inventory": 2148532399,
+					"quantity": 1
+				},
+				{
+					"id": 203257328,
+					"defindex": 332,
+					"level": 30,
+					"quality": 6,
+					"inventory": 2147483899,
+					"quantity": 1,
+					"flag_cannot_trade": true
+				},
+				{
+					"id": 207302671,
+					"defindex": 329,
+					"level": 15,
+					"quality": 6,
+					"inventory": 2147483813,
+					"quantity": 1
+				},
+				{
+					"id": 213582968,
+					"defindex": 5044,
+					"level": 1,
+					"quality": 6,
+					"inventory": 2147483698,
+					"quantity": 1
+				},
+				{
+					"id": 214709876,
+					"defindex": 5002,
+					"level": 3,
+					"quality": 6,
+					"inventory": 2147483690,
+					"quantity": 1
+				},
+				{
+					"id": 217058301,
+					"defindex": 5001,
+					"level": 2,
+					"quality": 6,
+					"inventory": 2147483679,
+					"quantity": 1
+				},
+				{
+					"id": 220156458,
+					"defindex": 35,
+					"level": 8,
+					"quality": 6,
+					"inventory": 2147483653,
+					"quantity": 1
+				},
+				{
+					"id": 220177693,
+					"defindex": 132,
+					"level": 5,
+					"quality": 6,
+					"inventory": 2147483651,
+					"quantity": 1
+				},
+				{
+					"id": 220239292,
+					"defindex": 42,
+					"level": 1,
+					"quality": 6,
+					"inventory": 2147483652,
+					"quantity": 1
+				},
+				{
+					"id": 223295360,
+					"defindex": 44,
+					"level": 15,
+					"quality": 6,
+					"inventory": 2147483650,
+					"quantity": 1
+				},
+				{
+					"id": 231697340,
+					"defindex": 317,
+					"level": 25,
+					"quality": 6,
+					"inventory": 2147483765,
+					"quantity": 1
+				},
+				{
+					"id": 233890916,
+					"defindex": 326,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483786,
+					"quantity": 1
+				},
+				{
+					"id": 239400697,
+					"defindex": 5001,
+					"level": 2,
+					"quality": 6,
+					"inventory": 2147483680,
+					"quantity": 1
+				},
+				{
+					"id": 245918439,
+					"defindex": 141,
+					"level": 5,
+					"quality": 6,
+					"inventory": 2147483649,
+					"quantity": 1
+				},
+				{
+					"id": 249156150,
+					"defindex": 37,
+					"level": 10,
+					"quality": 6,
+					"inventory": 2147483655,
+					"quantity": 1
+				}
+			]
+		}
+	}
+}

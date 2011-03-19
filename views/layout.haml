@@ -6,9 +6,9 @@
     %meta{'http-equiv' => 'Content-Type', :content => 'text/html; charset=utf-8'}
     %link{:rel => 'stylesheet', :type => 'text/css', :href => '/main.css', :media => 'screen'}
     %link{:rel => 'stylesheet', :type => 'text/css', :href => '/tipsy.css', :media => 'screen'}
-    %script{:type => 'text/javascript', 
+    %script{:type => 'text/javascript',
       :src => 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js'}
-    - ['jquery.tablesorter', 'protovis-r3.2', 'jquery.tipsy', 'tipsy'].each do |js|
+    - ['jquery.tablesorter', 'protovis-r3.2', 'jquery.qtip-1.0.min'].each do |js|
       %script{:type => 'text/javascript', :src => "/javascript/#{js}.js"}
   %body
     #content

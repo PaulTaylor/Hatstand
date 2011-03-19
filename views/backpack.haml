@@ -1,6 +1,6 @@
 :javascript
   $(function() {
-    
+
     // Table sorter
     $('table').tablesorter();
 
@@ -11,23 +11,38 @@
     });
 
     // Tipsy
-    $('.item_nameE').tipsy({fade: true, gravity: 'e', html: true, title: 'item_pic_img'});
-    $('.item_nameW').tipsy({fade: true, gravity: 'w', html: true, title: 'item_pic_img'});
+    $('.item_nameE, .item_nameW').each(function(idx, elem) {
+      $(elem).qtip({
+        content: $(elem).attr('item_pic_img'),
+        show: 'mouseover',
+        hide: 'mouseout',
+        style: {
+          padding: 0,
+          width: 148,
+          height: 138,
+          border: {
+            radius: 5
+          },
+          tip: 'leftTop',
+          name: 'dark'
+        }
+      });
+    });
 
   });
-  
-  vis_data = #{classSlotItem.to_json}
+
+  vis_data = #{backpack.vis_data.to_json}
   bar_clazz = '';
 
-%h1 
+%h1
   -# Dodge to leave the rest of the name as specified so that
   -# my name doesn't have a small D in
-  = "#{username}'s Backpack"
-  %img.avatar{:alt => 'avatar', :src => avatarUrl}
+  = "#{user.username}'s Backpack"
+  %img.avatar{:alt => 'avatar', :src => user.avatarUrl}
 
 
 #vis_container.container.expando
-  %h3#vis_header 
+  %h3#vis_header
     Item Chart
     %small
       [Click to hide]
@@ -61,7 +76,7 @@
         var root = new pv.Panel()
             .width(400 + w)
             .height(h);
-        
+
         var bar_data = [];
         var bar_max = 10;
 
@@ -75,7 +90,7 @@
             .event('mousemove', function() {
               var bar_clazz = pie_data[this.index].clazz;
               bar_data = vis_data[bar_clazz];
-              bar_max = pv.max(Object.keys(bar_data), function(k) Object.keys(bar_data[k]).length)
+              bar_max = 2+ pv.max(Object.keys(bar_data), function(k) Object.keys(bar_data[k]).length)
               bar_scale = pv.Scale.linear(0, bar_max).range(30,290);
               root.render();
             })
@@ -94,7 +109,7 @@
           .text('Item Breakdown (mouse over the pie)')
           .right((4*80) + 20)
           .bottom(0);
-        
+
         var bar_rule = root.add(pv.Rule)
             .data(function() pv.range(0, bar_max + 1, 2))
             .bottom(function(d) bar_scale(d))
@@ -109,7 +124,7 @@
         var bar_colors = pv.Colors.category20();
         var bar_scale = pv.Scale.linear(0, bar_max).range(30,290);
         var bar = root.add(pv.Bar)
-          .data(function() Object.keys(bar_data).reverse().slice(0,4))
+          .data(function() Object.keys(bar_data).slice(0,4))
             .width(60)
             .height(function(d) {
               return -30 + bar_scale(Object.keys(bar_data[d]).length);
@@ -132,7 +147,7 @@
         root.render();
 
 
-- sections.each do |section|
+- Backpack::SLOT_INDEXES.each do |section, srt_idx|
   .container.expando
     %h3
       = section
@@ -144,54 +159,42 @@
           %th Item Name
           %th Equipped By
       %tbody
-        - # item_detail[item_name, eqipped_pics]
-        - item_detail = {}
-        - classSlotItem.each do |class_name, slots|
-          - class_pic_url = "/valve-imgs/20px-Leaderboard_class_#{class_name.downcase}.png"
-          - classSlotItem[class_name][section].values.each do |item|
-            - item_detail[item[:defindex]] ||= item
-            - equipped_imgs = item_detail[item[:defindex]][:equipped_pics]
-            - if !equipped_imgs then
-              - equipped_imgs = []
-              - item_detail[item[:defindex]][:equipped_pics] = equipped_imgs
-            - if item[:equipped] then
-              - equipped_imgs << class_pic_url 
-        - item_detail.each do |item_idx, item|
-          - equipped_pics = item[:equipped_pics]
+        - backpack.display_sections[section].each do |item|
+          - equipped_pics = item.equipped_pics
           %tr
             %td
-              - border_style = '0'
-              - if item[:paint_col].nil?
-                - item[:paint_col] = 'transparent'
-              %span{:style => "color:#{item[:paint_col]}; background-color: #{item[:paint_col]};display:inline-block;", :height => '1em', :width => '1.5em'}
+              - border_style = "5px solid #{item.paint_col}" if item.paint_col
+              %span{:style => "color:#{item.paint_col}; background-color: #{item.paint_col};display:inline-block;", :height => '1em', :width => '1.5em'}
                 HH
-              %span.item_nameE{:item_pic_img => "<img style='border: #{border_style};' src='#{item[:img_url]}' />", :class => 'item_name'}
-                = item[:real_name]
+              %span.item_nameE{:item_pic_img => "<img style='border: #{border_style};' src='#{item.item_pic_url}' />", :class => 'item_name'}
+                = item.en_name
               %span
-                - unless item[:tradable]
+                - unless item.tradable?
                   %strong [Not-tradable]
             %td
               - equipped_pics.each do |url|
                 %img{:src => url}
-  
+
 .container.expando
-  %h3 
+  %h3
     Duplicates
     %small
       [Click to expand/hide]
   %ul.closed
-    - dupes.group_by { |i| i[:real_name] }.each do |item_type, item_list|
+    - dupes = backpack.duplicates
+    - dupes.group_by { |i| i.en_name }.each do |item_type, item_list|
       - item = item_list[0]
-      %li.item_nameW{:item_pic_img => "<img src='#{item[:img_url]}' />"}
-        = "#{item[:real_name]} (#{item_list.size})"
-  
+      %li.item_nameW{:item_pic_img => "<img src='#{item.item_pic_url}' />"}
+        = "#{item.en_name} (#{item.count - 1})"
+
 .container.expando
-  %h3 
+  %h3
     Unequipable Items
     %small
       [Click to expand/hide]
   %ul.closed
-    - miscs.group_by { |i| i[:real_name] }.each do |item_type, item_list|
+    - miscs = backpack.miscs
+    - miscs.group_by { |i| i.en_name }.each do |item_type, item_list|
       - item = item_list[0]
-      %li.item_nameW{:item_pic_img => "<img src='#{item[:img_url]}' />"}
-        = "#{item[:real_name]} (#{item_list.size})"
+      %li.item_nameW{:item_pic_img => "<img src='#{item.item_pic_url}' />"}
+        = "#{item.en_name} (#{item.count})"

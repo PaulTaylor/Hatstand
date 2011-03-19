@@ -2,3 +2,5 @@
 .DS_Store
 *.db
 set_env.sh
+mongo_data
+example.json

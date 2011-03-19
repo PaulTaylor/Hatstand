@@ -13,21 +13,19 @@ require 'haml'
 # stuff needed to get items from steamcommunity.com
 require 'uri'
 
-# Use Sequel for db access
-require 'sequel'
-
 # Extra Stuff for WS & Parsing
 require 'open-uri'
 require 'xml'
 require 'json/ext'
 
-# MongoDB for stats
-if production? then
-  require 'mongo'
-  mgo_uri = URI.parse(ENV['MONGOHQ_URL'])
-  mgo_conn = Mongo::Connection.from_uri(ENV['MONGOHQ_URL'])
-  MGO_DB = mgo_conn.db(mgo_uri.path.gsub(/^\//, ''))
-  puts 'connected to mongohq'
+# my classes
+require 'mongoid'
+require './lib/item.rb'
+require './lib/backpack.rb'
+require './lib/user.rb'
+
+configure do
+  require './lib/load_mongoid.rb'
 end
 
 # Some constants
@@ -35,73 +33,34 @@ STARTUP_TIME = Time.now
 STEAM_API_KEY = ENV['steam_api_key']
 puts "Using steam api key = #{STEAM_API_KEY}"
 
-CLASS_MASKS = {
-  'Engineer' => 0x001000000,
-  'Spy' => 0x000800000,
-  'Pyro' => 0x000400000,
-  'Heavy' => 0x000200000,
-  'Medic' => 0x000100000,
-  'Demoman' => 0x000080000,
-  'Soldier' => 0x000040000,
-  'Sniper' => 0x000020000,
-  'Scout' => 0x000010000
-}
-
-# Define a predictable order for item slots
-SLOT_INDEXES = Hash.new(99)
-SLOT_INDEXES.update({
-  'Head' => 0,
-  'Primary' => 1,
-  'Secondary' => 2,
-  'Melee' => 3,
-  'PDA' => 4,
-  'Misc' => 99
-})
-
 # Define some helpers
 helpers do
 
-  DB = Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://hatstand.db')
-  DS = DB[:items]
-  USERS = DB[:users]
-
-  def dbLookup(defindex) 
-    DS.filter(:item_id => defindex).first
+  def user_by_steam_id(steamId64)
+    User.where(:steamId64 => steamId64).first || User.new({:steamId64 => steamId64})
   end
 
-  def user(steamId64)
-    USERS.filter(:steamId64 => steamId64.to_s).first
-  end
-
-  def update_user(updates)
-    USERS.filter(:steamId64 => updates[:steamId64]).delete
-    USERS.insert(updates)
-  end
-
-  def poke_mongo(steamId64)
+  def poke_mongo(steamId64, name)
     # Poke MongoDB for stats (only on production)
-    if production? then
-      coll = MGO_DB['stats']
-      mgo_doc = coll.find({'steamId64' => steamId64}).to_a[0]
-      unless mgo_doc
-        mgo_doc = {
-          'steamId64' => steamId64,
-          'count' => 0,
-          'lastTime' => Time.now
-        }
-        mgo_doc = { '_id' => coll.insert(mgo_doc) }
-      end
-      coll.update({'_id' => mgo_doc['_id']}, {'$inc' => {'count' => 1}, '$set' => { 'lastTime' => Time.now }})
-    else
-      puts "Would have poked mongo with #{steamId64}"
+    coll = Mongoid.database['stats']
+    mgo_doc = coll.find({'steamId64' => steamId64}).to_a[0]
+    unless mgo_doc
+      mgo_doc = {
+        'steamId64' => steamId64,
+        'count' => 0,
+        'lastTime' => Time.now,
+        'name' => name
+      }
+      mgo_doc = { '_id' => coll.insert(mgo_doc) }
     end
+    coll.update({'_id' => mgo_doc['_id']}, {'$inc' => {'count' => 1}, '$set' => { 'lastTime' => Time.now }})
   end
 
 end
 
 get '/' do
   # This can be cached long term because Heroku will flush its varnish
-  # front end on deploy 
+  # front end on deploy
   expires 43200, :public, :must_revalidate
   haml :index
 end
@@ -122,16 +81,16 @@ get '/u/:username' do
     unless doc.node_type == XML::Reader::TYPE_END_ELEMENT
       # Look for stuff of interest
       case doc.name
-        when 'steamID64' then 
+        when 'steamID64' then
           doc.read
           # The first one is the one we actually want
           steamId64 = doc.value if steamId64.nil?
           unknownProfile = false
-        when 'privacyState' then 
-          doc.read 
+        when 'privacyState' then
+          doc.read
           privateProfile = ( 'private' == doc.value )
           unknownProfile = false
-        when 'avatarFull' then 
+        when 'avatarFull' then
           doc.read
           avatarUrl = doc.value if avatarUrl.nil?
       end
@@ -141,32 +100,32 @@ get '/u/:username' do
     continue = (steamId64.nil? || avatarUrl.nil?)
   end
   doc.close
-  
-  
+
   if privateProfile then
-    haml :private, :locals => { 
+    haml :private, :locals => {
       :username => params[:username],
       :avatarUrl => avatarUrl
     }
   elsif unknownProfile then
-    haml :unknown, :locals => { 
+    haml :unknown, :locals => {
       :username => params[:username],
       :avatarUrl => avatarUrl
     }
-  else 
+  else
 
     # Update the db with the latest info
-    update_user({
-      :steamId64 => steamId64,
+
+    user = user_by_steam_id(steamId64)
+    user.update({
       :avatarUrl => avatarUrl,
       :username => params[:username]
     })
+    user.save
 
     # Forward to the backpack page, and get heroku's varnish to
     # cache the forward
     expires 3600, :public, :must_revalidate
     redirect "/id/#{steamId64}", 302
-
   end
 end
 
@@ -174,36 +133,29 @@ get '/id/:steamId64' do
 
   # grab the steamId from the url
   steamId64 = params[:steamId64].to_i
-  user = user(steamId64)
-  avatarUrl = ''
-  username = ''
+  user = user_by_steam_id(steamId64)
 
-  if user.nil? then
+  if user.username.nil? then
     # This could be the case if the users table is empty and the steam id
     # (this) url is used
-    
+
     # TODO Get the populate_db.rb script to update avatars from existing users
     # using this (or similar code)
     sc_url = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0001/?key=#{STEAM_API_KEY}&steamids=#{steamId64}"
     sc_res = JSON.parse(open(sc_url).read, { :symbolize_names => true })
     player_list = sc_res[:response][:players][:player]
-    player_list.each do |player| 
-      update_user({
-        :steamId64 => player[:steamId64], 
-        :avatarUrl => player[:avatarfull],
-        :username => player[:personaname]
-      })
-      username = player[:personaname]
-      avatarUrl = player[:avatarfull]
+    player_list.each do |player|
+      user.avatarUrl = player[:avatarfull]
+      user.username = player[:personaname]
+      user.save
+      p user
     end
-  else
-    avatarUrl = user[:avatarUrl]
-    username = user[:username]
   end
 
   # Now I can make the steam api call for the actual backpack
   api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
-  backpackJson = open(api_url).read 
+  #api_url = './tests/backpack_test.json'
+  backpackJson = open(api_url).read
 
   backpack = JSON.parse(backpackJson, { :symbolize_names => true })
 
@@ -214,110 +166,17 @@ get '/id/:steamId64' do
     }
   else
 
-    poke_mongo(steamId64)
-
-    backpack = backpack[:result][:items][:item]
-
-    # Example of the use of this has
-    # classCategoryItem(<class>)(<slot>) = [ item_json, item_json ]
-    classSlotItem = Hash.new
-    # Populate hash with empty collections
-    CLASS_MASKS.each do |class_name, mask|
-      classSlotItem[class_name] = Hash.new
-      SLOT_INDEXES.each do |slot_name, slot_idx| 
-        classSlotItem[class_name][slot_name] = Hash.new
-      end
-    end
-
-    observedDefIds = Hash.new
-    miscs = []
-    duplicates = []
-    backpack.each do |bItem|
-        
-      # Get the schema entry for this item
-      schemaEntry = dbLookup(bItem[:defindex])
-      possibleClasses = ( schemaEntry[:item_classes] || '' ).split(',')
-      slot_name = schemaEntry[:item_slot]
-      slot_name = 'Misc' if slot_name == 'Action'
-
-      if possibleClasses.empty? then
-        # Non-equippable item - like Scrap for example
-        miscs << {
-          :defindex => bItem[:defindex],
-          :real_name => bItem[:custom_name] || schemaEntry[:en_name],
-          :img_url => schemaEntry[:item_pic_url]
-        }
-      elsif observedDefIds[bItem[:defindex]] then
-
-        # Here just need to check that said item is not equipped, and to change the equipped
-        # value of the item in the classSlotItem hash if it is
-        possibleClasses.each do |class_name|
-          mask = CLASS_MASKS[class_name]
-          equipped = ( bItem[:inventory] & mask ) || 0 
-          if (equipped > 0) then
-              match = classSlotItem[class_name][slot_name][bItem[:defindex]]
-              match[:equipped] = true if match 
-          end
-        end
-
-        duplicates << {
-          :defindex => bItem[:defindex], 
-          :real_name => bItem[:custom_name] || schemaEntry[:en_name],
-          :img_url => schemaEntry[:item_pic_url]
-        }
-      else
-
-        # Check to see if this item has been painted
-        col_val = nil
-        if bItem[:attributes] then
-          attr_list = bItem[:attributes][:attribute] 
-          col_attr = attr_list.detect { |a| a[:defindex] == 142 }
-          if (col_attr) then
-            col_int = col_attr[:float_value]
-            col_val = "#%06x" % col_int;
-          end
-        end
-
-        # Add this item to classSlotItem in the correct location(s)
-        possibleClasses.each do |class_name|
-
-          # Is the item equipped by this class?
-          mask = CLASS_MASKS[class_name]
-          equipped = ( bItem[:inventory] & mask ) || 0 
-
-          # Put items with unknown slots into misc
-          slot_name = 'Misc' unless SLOT_INDEXES[slot_name] < 10
-
-          begin
-            classSlotItem[class_name][slot_name][bItem[:defindex]] = { 
-              :defindex => bItem[:defindex], 
-              :equipped => equipped > 1,
-              :real_name => bItem[:custom_name] || schemaEntry[:en_name],
-              :img_url => schemaEntry[:item_pic_url],
-              :tradable => if bItem[:flag_cannot_trade] then false else true end
-            }
-            classSlotItem[class_name][slot_name][bItem[:defindex]][:paint_col] = col_val unless col_val.nil?  
-          rescue
-            puts "class = #{class_name}, slot = #{slot_name}"
-          end
-        end
-        
-        # Mark that we have seen this item now
-        observedDefIds[bItem[:defindex]] = 1
-      end
-    end
+    bpk_items = backpack[:result][:items][:item]
+    poke_mongo(steamId64, user[:username])
+    bpk = Backpack.new(bpk_items)
 
     haml :backpack, :locals => {
-      :sections => SLOT_INDEXES.keys.sort { |one,two| SLOT_INDEXES[one] <=> SLOT_INDEXES[two] },
-      :username => username, 
-      :classSlotItem => classSlotItem,
-      :dupes => duplicates,
-      :miscs => miscs,
-      :avatarUrl => avatarUrl
-    }  
+      :user => user,
+      :backpack => bpk
+    }
   end
 end
-   
+
 get '/privacy' do
     haml :privacy
 end
@@ -325,7 +184,7 @@ end
 # Generate stylesheets from sass templates
 get '/:ss_name.css' do
   # This can be cached long term because Heroku will flush its varnish
-  # front end on deploy 
+  # front end on deploy
   expires 43200, :public, :must_revalidate
   content_type 'text/css', :charset => 'utf-8'
   sass params[:ss_name].intern
