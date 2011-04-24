@@ -196,5 +196,6 @@
     - miscs = backpack.miscs
     - miscs.group_by { |i| i.en_name }.each do |item_type, item_list|
       - item = item_list[0]
-      %li.item_nameW{:item_pic_img => "<img src='#{item.item_pic_url}' />"}
+      - border_style = "5px solid #{item.paint_col}" if item.paint_col
+      %li.item_nameW{:item_pic_img => "<img style='border: #{border_style};' src='#{item.item_pic_url}' />"}
         = "#{item.en_name} (#{item.count})"

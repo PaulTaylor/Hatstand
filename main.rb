@@ -153,7 +153,7 @@ get '/id/:steamId64' do
   end
 
   # Now I can make the steam api call for the actual backpack
-  api_url = "http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
+  api_url = "http://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
   #api_url = './tests/backpack_test.json'
   backpackJson = open(api_url).read
 
@@ -166,7 +166,7 @@ get '/id/:steamId64' do
     }
   else
 
-    bpk_items = backpack[:result][:items][:item]
+    bpk_items = backpack[:result][:items]
     poke_mongo(steamId64, user[:username])
     bpk = Backpack.new(bpk_items)
 

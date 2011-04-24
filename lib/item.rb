@@ -21,6 +21,7 @@ class Item
   field :used_by
   field :item_id
   field :item_pic_url
+  field :paint_col
 
   # Constructor
   def initialize(item_info)
@@ -45,15 +46,23 @@ class Item
     end
     self[:slot] = slot
 
-    used_by = (item_info[:used_by_classes] || {})[:class]
-    unless used_by then
-      used_by = CLASS_MASKS.keys
-    end
+    # if used_by_class doesn't exists - the item can be used by ALL classes
+    # if used_by_class == [ null ] - then the item is not equippable
+    # otherwise used_by_class contains the names of the appropriate classes
+    used_by = item_info[:used_by_classes] || CLASS_MASKS.keys
     self[:used_by] = used_by.compact
 
     self[:item_id] = item_info[:defindex]
     self[:item_pic_url] = "#{item_info[:image_url]}"
 
+    # Get the colour of paint
+    if item_info[:name][/^Paint Can/] then
+      col_attr = item_info[:attributes].detect { |a| a[:class] == 'set_item_tint_rgb' }
+      if (col_attr) then
+        col_int = col_attr[:value]
+        self[:paint_col] = "#%06x" % col_int;
+      end
+    end
   end
 
 end

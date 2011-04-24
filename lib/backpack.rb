@@ -94,13 +94,17 @@ class BackpackItem
     # Deal with the paint color
     @paint_col = 'transparent'
     if item_json[:attributes] then
-      attr_list = item_json[:attributes][:attribute]
-      col_attr = attr_list.detect { |a| a[:defindex] == 142 }
+      attr_list = item_json[:attributes]
+      col_attr = attr_list.detect { |a| a[:defindex] == 142 || a[:class] }
       if (col_attr) then
         col_int = col_attr[:float_value]
         @paint_col = "#%06x" % col_int;
       end
     end
+
+    # Special handling for paint - since it should be considered
+    # to be painted its own colour
+    @paint_col = @item.paint_col if @item.paint_col
 
     # tradable flag
     @tradable = !item_json[:flag_cannot_trade]
