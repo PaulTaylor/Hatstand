@@ -95,7 +95,7 @@ class BackpackItem
     @paint_col = 'transparent'
     if item_json[:attributes] then
       attr_list = item_json[:attributes]
-      col_attr = attr_list.detect { |a| a[:defindex] == 142 || a[:class] }
+      col_attr = attr_list.detect { |a| a[:defindex] == 142 }
       if (col_attr) then
         col_int = col_attr[:float_value]
         @paint_col = "#%06x" % col_int;
