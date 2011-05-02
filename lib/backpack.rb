@@ -123,7 +123,9 @@ class BackpackItem
   end
 
   def equipped_pics
-    @equipped_classes.collect do |class_name|
+    # Add to_set call to stop duplicate items in the backpack causing repeats
+    # of class icons for a single item
+    @equipped_classes.to_set.collect do |class_name|
       "/valve-imgs/20px-Leaderboard_class_#{class_name.downcase}.png"
     end
   end
