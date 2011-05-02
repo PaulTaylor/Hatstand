@@ -175,17 +175,18 @@
               - equipped_pics.each do |url|
                 %img{:src => url}
 
-.container.expando
-  %h3
-    Duplicates
-    %small
-      [Click to expand/hide]
-  %ul.closed
-    - dupes = backpack.duplicates
-    - dupes.group_by { |i| i.en_name }.each do |item_type, item_list|
-      - item = item_list[0]
-      %li.item_nameW{:item_pic_img => "<img src='#{item.item_pic_url}' />"}
-        = "#{item.en_name} (#{item.count - 1})"
+- unless backpack.duplicates.empty?
+  .container.expando
+    %h3
+      Duplicates
+      %small
+        [Click to expand/hide]
+    %ul.closed
+      - dupes = backpack.duplicates
+      - dupes.group_by { |i| i.en_name }.each do |item_type, item_list|
+        - item = item_list[0]
+        %li.item_nameW{:item_pic_img => "<img src='#{item.item_pic_url}' />"}
+          = "#{item.en_name} (#{item.count - 1})"
 
 .container.expando
   %h3

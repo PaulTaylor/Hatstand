@@ -1,0 +1,59 @@
+:javascript
+  $(function() {
+
+    // Table sorter
+    $('table').tablesorter();
+
+    // Tipsy
+    $('.item_nameE, .item_nameW').each(function(idx, elem) {
+      $(elem).qtip({
+        content: $(elem).attr('item_pic_img'),
+        show: 'mouseover',
+        hide: 'mouseout',
+        style: {
+          padding: 0,
+          width: 148,
+          height: 138,
+          border: {
+            radius: 5
+          },
+          tip: 'leftTop',
+          name: 'dark'
+        }
+      });
+    });
+
+  });
+
+
+%h1
+  -# Dodge to leave the rest of the name as specified so that
+  -# my name doesn't have a small D in
+  %img.avatar{:alt => 'avatar', :src => user.avatarUrl}
+  %span.after_avatar= "#{user.username}'s Backpack"
+
+.container
+  %h3
+    Portal 2 Items
+  %table.tablesorter
+    %thead
+      %tr
+        %th Item Name
+        %th Equipped By
+    %tbody
+      - backpack.items.values.each do |item|
+        - equipped_pics = item.equipped_pics
+        %tr
+          %td
+            - border_style = "5px solid #{item.paint_col}" if item.paint_col
+            %span{:style => "color:#{item.paint_col}; background-color: #{item.paint_col};display:inline-block;", :height => '1em', :width => '1.5em'}
+              HH
+            %span.item_nameE{:item_pic_img => "<img style='border: #{border_style};' src='#{item.item_pic_url}' />", :class => 'item_name'}
+              = item.en_name
+            %span
+              - unless item.tradable?
+                %strong [Not-tradable]
+          %td
+            - equipped_pics.each do |url|
+              %img{:src => url}
+

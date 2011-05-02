@@ -13,10 +13,10 @@ class Backpack
     'Misc' => 99
   }
 
-  attr_reader :display_sections, :vis_data, :duplicates, :miscs
+  attr_reader :display_sections, :vis_data, :duplicates, :miscs, :items
 
   # Constructor
-  def initialize(bpk_items)
+  def initialize(bpk_items, type)
 
     # Master list of items key-d by defindex
     @items = {}
@@ -29,7 +29,7 @@ class Backpack
 
     # This will return {class, item type, count} for the visualisation
     @vis_data = {}
-    Item::CLASS_MASKS.each do |class_name, mask_value|
+    type::CLASS_MASKS.each do |class_name, mask_value|
       @vis_data[class_name] = {
         'head' => [],
         'primary' => [],
@@ -41,7 +41,7 @@ class Backpack
     # Foreach item
     bpk_items.each do |item_json|
       defidx = item_json[:defindex]
-      bpk_item = (@items[defidx] ||= BackpackItem.new(item_json))
+      bpk_item = (@items[defidx] ||= BackpackItem.new(item_json, type))
       bpk_item.update item_json
     end
 
@@ -79,17 +79,16 @@ end
 # Class for an item in a backpack
 class BackpackItem
 
-  CLASS_MASKS = Item::CLASS_MASKS
-
   attr_reader :defindex, :count, :equipped_classes, :paint_col
 
   # Constructor
   # MUST be followed by a call to update
-  def initialize(item_json)
+  def initialize(item_json, type)
     @defindex = item_json[:defindex]
-    @item = Item.where(:defindex => @defindex).first
+    @item = type.where(:defindex => @defindex).first
     @equipped_classes = []
     @count = 0
+    @type = type
 
     # Deal with the paint color
     @paint_col = 'transparent'
@@ -104,7 +103,7 @@ class BackpackItem
 
     # Special handling for paint - since it should be considered
     # to be painted its own colour
-    @paint_col = @item.paint_col if @item.paint_col
+    @paint_col = @item.paint_col if type == TF_Item && @item.paint_col
 
     # tradable flag
     @tradable = !item_json[:flag_cannot_trade]
@@ -133,10 +132,12 @@ class BackpackItem
   def update(new_item_json)
     # Append any classes using this instance of the item to the equipped_classes array
     @item.used_by.each do |class_name|
-      inventory = new_item_json[:inventory]
-      inventory ||= 0
-      if ( inventory & CLASS_MASKS[class_name] ) > 0
-        @equipped_classes << class_name
+      if @type::CLASS_MASKS[class_name]
+        inventory = new_item_json[:inventory]
+        inventory ||= 0
+        if ( inventory & @type::CLASS_MASKS[class_name] ) > 0
+          @equipped_classes << class_name
+        end
       end
     end
 

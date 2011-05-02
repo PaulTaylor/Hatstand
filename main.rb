@@ -33,6 +33,16 @@ STARTUP_TIME = Time.now
 STEAM_API_KEY = ENV['steam_api_key']
 puts "Using steam api key = #{STEAM_API_KEY}"
 
+ITEM_TYPES = {
+  440 => TF_Item,
+  620 => Portal_Item
+}
+
+APPS = {
+  'tf2' => 440,
+  'p2' => 620
+}
+
 # Define some helpers
 helpers do
 
@@ -130,10 +140,18 @@ get '/u/:username' do
 end
 
 get '/id/:steamId64' do
+  redirect "/id/#{params[:steamId64]}/tf2"
+end
+
+get '/id/:steamId64/:app_name' do
+
+  # if unknown app give 404
+  not_found unless APPS[params[:app_name]]
 
   # grab the steamId from the url
   steamId64 = params[:steamId64].to_i
   user = user_by_steam_id(steamId64)
+  app_id = APPS[params[:app_name]]
 
   if user.username.nil? then
     # This could be the case if the users table is empty and the steam id
@@ -153,7 +171,7 @@ get '/id/:steamId64' do
   end
 
   # Now I can make the steam api call for the actual backpack
-  api_url = "http://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
+  api_url = "http://api.steampowered.com/IEconItems_#{app_id}/GetPlayerItems/v0001/?key=#{STEAM_API_KEY}&SteamID=#{steamId64}"
   #api_url = './tests/backpack_test.json'
   backpackJson = open(api_url).read
 
@@ -168,9 +186,9 @@ get '/id/:steamId64' do
 
     bpk_items = backpack[:result][:items]
     poke_mongo(steamId64, user[:username])
-    bpk = Backpack.new(bpk_items)
+    bpk = Backpack.new(bpk_items, ITEM_TYPES[app_id])
 
-    haml :backpack, :locals => {
+    haml "backpack_#{app_id}".to_sym, :locals => {
       :user => user,
       :backpack => bpk
     }
