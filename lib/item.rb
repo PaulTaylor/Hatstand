@@ -28,7 +28,7 @@ class Item
       when 'pda2'
         slot = 'PDA'
       else
-        slot = item_info[:item_slot].capitalize
+        slot = (item_info[:item_slot] || 'Misc').capitalize
     end
     self[:slot] = slot
 
