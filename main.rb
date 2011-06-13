@@ -68,6 +68,11 @@ helpers do
 
 end
 
+# Handle errors
+error do
+  haml :error
+end
+
 get '/' do
   # This can be cached long term because Heroku will flush its varnish
   # front end on deploy
