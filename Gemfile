@@ -8,7 +8,7 @@ end
 
 gem "haml" ,'>=3.0.13'
 gem "sass" ,'>=3.0.13'
-gem "libxml-ruby" ,'=2.0.2'
+gem "libxml-ruby" ,'>=2.0.2'
 gem "json" ,'>=1.4.3'
 gem "xml-simple" ,'>=1.0.12'
 gem "RedCloth" ,'>=4.2.7'
