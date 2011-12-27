@@ -34,8 +34,8 @@ STEAM_API_KEY = ENV['steam_api_key']
 puts "Using steam api key = #{STEAM_API_KEY}"
 
 ITEM_TYPES = {
-  440 => TF_Item,
-  620 => Portal_Item
+  440 => TFItem,
+  620 => PortalItem
 }
 
 APPS = {

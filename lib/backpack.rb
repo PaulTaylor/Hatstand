@@ -85,7 +85,7 @@ class BackpackItem
   # MUST be followed by a call to update
   def initialize(item_json, type)
     @defindex = item_json[:defindex]
-    @item = type.where(:defindex => @defindex).first
+    @item = type.where(defindex: @defindex).first
     @equipped_classes = []
     @count = 0
     @type = type
@@ -103,7 +103,7 @@ class BackpackItem
 
     # Special handling for paint - since it should be considered
     # to be painted its own colour
-    @paint_col = @item.paint_col if type == TF_Item && @item.paint_col
+    @paint_col = @item.paint_col if type == TFItem && @item.paint_col
 
     # tradable flag
     @tradable = !item_json[:flag_cannot_trade]

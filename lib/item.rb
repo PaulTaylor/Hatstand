@@ -45,7 +45,7 @@ class Item
 
 end
 
-class TF_Item < Item
+class TFItem < Item
 
   # Masks used to represent TF classes in the backback
   CLASS_MASKS = {
@@ -80,7 +80,7 @@ class TF_Item < Item
 
 end
 
-class Portal_Item < Item
+class PortalItem < Item
 
   # Masks for Portal Classes
   CLASS_MASKS = {

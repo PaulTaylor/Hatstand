@@ -11,10 +11,10 @@ require 'open-uri'
 STEAM_API_KEY = ENV['steam_api_key']
 
 # Items collection - will be dropped and recreated
-Mongoid.database.drop_collection TF_Item.collection_name
-Mongoid.database.drop_collection Portal_Item.collection_name
+Mongoid.database.drop_collection TFItem.collection_name
+Mongoid.database.drop_collection PortalItem.collection_name
 
-{440 => TF_Item, 620 => Portal_Item}.each do |app, type|
+{440 => TFItem, 620 => PortalItem}.each do |app, type|
 
   api_url = "http://api.steampowered.com/IEconItems_#{app}/GetSchema/v0001/?language=en&key=#{STEAM_API_KEY}"
   res = JSON.parse(open(api_url).read, { :symbolize_names => true })
