@@ -25,7 +25,7 @@ require './lib/backpack.rb'
 require './lib/user.rb'
 
 configure do
-  require './lib/load_mongoid.rb'
+  Mongoid.load!("config/mongoid.yml")
 end
 
 # Some constants
@@ -52,8 +52,8 @@ helpers do
 
   def poke_mongo(steamId64, name)
     # Poke MongoDB for stats (only on production)
-    coll = Mongoid.database['stats']
-    mgo_doc = coll.find({'steamId64' => steamId64}).to_a[0]
+    coll = Mongoid.default_session[:stats]
+    mgo_doc = coll.find({'steamId64' => steamId64}).one
     unless mgo_doc
       mgo_doc = {
         'steamId64' => steamId64,
@@ -63,7 +63,8 @@ helpers do
       }
       mgo_doc = { '_id' => coll.insert(mgo_doc) }
     end
-    coll.update({'_id' => mgo_doc['_id']}, {'$inc' => {'count' => 1}, '$set' => { 'lastTime' => Time.now }})
+
+    mgo_doc.update(count: mgo_doc['count'] + 1, lastTime: Time.now)
   end
 
 end

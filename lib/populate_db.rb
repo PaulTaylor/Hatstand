@@ -2,7 +2,6 @@
 
 require 'rubygems'
 require 'mongoid'
-require './lib/load_mongoid.rb'
 require './lib/item.rb'
 
 require 'json'
@@ -11,8 +10,9 @@ require 'open-uri'
 STEAM_API_KEY = ENV['steam_api_key']
 
 # Items collection - will be dropped and recreated
-Mongoid.database.drop_collection TFItem.collection_name
-Mongoid.database.drop_collection PortalItem.collection_name
+Mongoid.load!("config/mongoid.yml")
+Mongoid.default_session[TFItem.collection_name].drop()
+Mongoid.default_session[PortalItem.collection_name].drop()
 
 {440 => TFItem, 620 => PortalItem}.each do |app, type|
 
@@ -29,5 +29,5 @@ Mongoid.database.drop_collection PortalItem.collection_name
 end
 
 # Also drop the users table
-Mongoid.database.drop_collection 'users'
+Mongoid.default_session['users'].drop()
 

@@ -1,6 +1,9 @@
 source :rubygems
 
+gem 'foreman'
+gem 'thin'
 gem "sinatra" ,'>=1.0'
+gem 'rake'
 
 group :development do
   gem "sinatra-reloader", '>0'
@@ -12,6 +15,4 @@ gem "libxml-ruby" ,'>=2.0.2'
 gem "json" ,'>=1.4.3'
 gem "xml-simple" ,'>=1.0.12'
 gem "RedCloth" ,'>=4.2.7'
-gem "mongo" ,'>=1.5.2'
-gem "mongoid" ,'>2.2.4'
-gem "bson_ext" ,'>=1.5.2'
+gem "mongoid" ,'>=3'
