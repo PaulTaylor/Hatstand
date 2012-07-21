@@ -47,7 +47,7 @@ APPS = {
 helpers do
 
   def user_by_steam_id(steamId64)
-    User.where(:steamId64 => steamId64).first || User.new({:steamId64 => steamId64})
+    User.find_or_initialize_by(steamId64: steamId64)
   end
 
   def poke_mongo(steamId64, name)
@@ -64,7 +64,7 @@ helpers do
       mgo_doc = { '_id' => coll.insert(mgo_doc) }
     end
 
-    mgo_doc.update(count: mgo_doc['count'] + 1, lastTime: Time.now)
+    mgo_doc.update(count: (mgo_doc['count'] || 0) + 1, lastTime: Time.now)
   end
 
 end
@@ -172,7 +172,6 @@ get '/id/:steamId64/:app_name' do
       user.avatarUrl = player[:avatarfull]
       user.username = player[:personaname]
       user.save
-      p user
     end
   end
 
